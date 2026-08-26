@@ -15,7 +15,7 @@
  */
 package jdplus.advancedsa.base.r;
 
-import jdplus.advancedsa.base.core.tdarima.LtdArimaResults;
+import jdplus.advancedsa.base.core.tdarima.LtdResults;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.data.DoublesMath;
 import jdplus.toolkit.base.api.timeseries.TsData;
@@ -42,7 +42,7 @@ public class TimeVaryingArimaModelsTest {
         int[] seasonal = new int[]{0, 1, 1};
         for (int i = 0; i < s.length; ++i) {
 
-            LtdArimaResults result = TimeVaryingArimaModels.estimate(s[i].log().getValues().toArray(), s[i].getAnnualFrequency(), true, null, regular, seasonal, true, true, false, false, false, 1e-7, "mean_delta");
+            LtdResults result = TimeVaryingArimaModels.estimate(s[i].log().getValues().toArray(), s[i].getAnnualFrequency(), true, null, regular, seasonal, true, true, false, false, false, 1e-7, "mean_delta");
             assertTrue(result != null);
 //            System.out.print(result.getData("ll0.ll", Double.class));
 //            System.out.print('\t');
@@ -59,12 +59,12 @@ public class TimeVaryingArimaModelsTest {
         int[] regular = new int[]{0, 1, 1};
         int[] seasonal = new int[]{0, 1, 1};
         boolean vvar = false;
-        LtdArimaResults result = TimeVaryingArimaModels.estimate(s.getValues().toArray(), s.getAnnualFrequency(), false, null, regular, seasonal, true, true, false, false, !vvar, 1e-15, "mean_delta");
+        LtdResults result = TimeVaryingArimaModels.estimate(s.getValues().toArray(), s.getAnnualFrequency(), false, null, regular, seasonal, true, true, false, false, !vvar, 1e-15, "mean_delta");
         assertTrue(result != null);
-        FastMatrix parameters = parameters(result.getLtd().getModel().getP0(), result.getLtd().getModel().getP1(), n, 13);
+        FastMatrix parameters = parameters(result.finalResults().getModel().getP0(), result.finalResults().getModel().getP1(), n, 13);
         if (vvar) {
             FastMatrix V = FastMatrix.make(1, n);
-            double var1 = result.getLtd().getModel().getVar1();
+            double var1 = result.finalResults().getModel().getVar1();
             double e1 = Math.sqrt(var1);
             V.row(0).set(j -> {
                 double et = 1 + j * (e1 - 1) / (n - 1);

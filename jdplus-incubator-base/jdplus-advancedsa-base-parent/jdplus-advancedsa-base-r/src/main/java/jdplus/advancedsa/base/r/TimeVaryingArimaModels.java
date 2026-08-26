@@ -16,10 +16,12 @@
 package jdplus.advancedsa.base.r;
 
 import java.util.Locale;
-import jdplus.advancedsa.base.api.tdarima.LtdArimaSpec;
 import jdplus.advancedsa.base.api.tdarima.LtdSarimaSpec;
-import jdplus.advancedsa.base.core.tdarima.LtdArimaKernel;
-import jdplus.advancedsa.base.core.tdarima.LtdArimaResults;
+import jdplus.advancedsa.base.api.tdarima.LtdSarimaModelSpec;
+import jdplus.advancedsa.base.api.tdarima.LtdSpec;
+import jdplus.advancedsa.base.core.tdarima.LtdKernel;
+import jdplus.advancedsa.base.core.tdarima.LtdResults;
+import jdplus.advancedsa.base.core.tdarima.LtdSarimaResults;
 import jdplus.toolkit.base.api.math.matrices.Matrix;
 import jdplus.toolkit.base.core.math.matrices.FastMatrix;
 import jdplus.toolkit.base.core.ssf.composite.CompositeSsf;
@@ -122,13 +124,13 @@ public class TimeVaryingArimaModels {
         }
     }
 
-    public LtdArimaResults estimate(double[] data, int period, boolean mean, Matrix X, int[] regular, int[] seasonal,
+    public LtdResults estimate(double[] data, int period, boolean mean, Matrix X, int[] regular, int[] seasonal,
             boolean fphi, boolean fbphi, boolean ftheta, boolean fbtheta, boolean fvar,
             double eps, String param) {
 
-        LtdArimaSpec.Parametrization pltd = LtdArimaSpec.Parametrization.valueOf(param.toUpperCase(Locale.ROOT));
+        LtdSpec.Parametrization pltd = LtdSpec.Parametrization.valueOf(param.toUpperCase(Locale.ROOT));
 
-        SarimaSpec sspec = SarimaSpec.builder()
+        LtdSarimaSpec.Orders sspec = LtdSarimaSpec.Orders.builder()
                 .period(period)
                 .p(regular[0])
                 .d(regular[1])
@@ -137,42 +139,44 @@ public class TimeVaryingArimaModels {
                 .bd(period > 1 ? seasonal[1] : 0)
                 .bq(period > 1 ? seasonal[2] : 0)
                 .build();
-        LtdArimaSpec spec = LtdArimaSpec.builder()
-                .sarimaSpec(sspec)
+        LtdSarimaSpec modelspec = LtdSarimaSpec.builder()
+                .orders(sspec)
                 .vPhi(!fphi)
                 .vBphi(!fbphi)
                 .vTheta(!ftheta)
                 .vBtheta(!fbtheta)
                 .vVar(!fvar)
+                .build();
+
+        LtdSpec spec=LtdSpec.builder()
                 .parametrization(pltd)
                 .precision(eps)
                 .build();
-
-        LtdArimaKernel kernel = LtdArimaKernel.of(spec);
-        return kernel.process(DoubleSeq.of(data), period, mean, FastMatrix.of(X));
+        LtdKernel kernel = LtdKernel.of(spec);
+        return kernel.process(DoubleSeq.of(data), mean, FastMatrix.of(X), modelspec);
     }
 
-//    public LtdArimaResults estimate(double[] data, int period, Matrix X, int[] regular, int[] seasonal,
+//    public LtdSarimaResults estimate(double[] data, int period, Matrix X, int[] regular, int[] seasonal,
 //            double[] phi, double[] bphi, double[] theta, double[] btheta,
 //            double[] dphi, double[] dbphi, double[] dtheta, double[] dbtheta,
 //            double dvar, 
 //            boolean fphi, boolean fbphi, boolean ftheta, boolean fbtheta, boolean fvar,
 //            double eps) {
 //        
-//        LtdSarimaSpec spec =specOf(period, regular, seasonal,
+//        LtdSarimaModelSpec spec =specOf(period, regular, seasonal,
 //            phi, bphi, theta, btheta,
 //            dphi, dbphi, dtheta, dbtheta, dvar,
 //            fphi, fbphi, ftheta, fbtheta, fvar);
 //        
-//        LtdArimaKernel kernel=LtdArimaKernel.of(spec);
+//        LtdKernel kernel=LtdKernel.of(spec);
 //        return null;
 //    }
     // use p and fphi or p and phi (dphi == null) or p and phi and dphi   
-    public LtdSarimaSpec SarimaSpecOf(int period, int[] regular, int[] seasonal,
+    public LtdSarimaModelSpec SarimaSpecOf(int period, int[] regular, int[] seasonal,
             double[] phi, double[] bphi, double[] theta, double[] btheta,
             double[] dphi, double[] dbphi, double[] dtheta, double[] dbtheta,
             double dvar, boolean fphi, boolean fbphi, boolean ftheta, boolean fbtheta, boolean fvar) {
-        LtdSarimaSpec.Builder builder = LtdSarimaSpec.builder()
+        LtdSarimaModelSpec.Builder builder = LtdSarimaModelSpec.builder()
                 .period(period);
 
         int p = regular[0];
