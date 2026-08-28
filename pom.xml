@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>eu.europa.ec.joinup.sat</groupId>
@@ -13,7 +11,6 @@
     <description>JDemetra+ v3 - benchmarking extensions</description>
     <url>https://github.com/${x.github.user}/${x.github.repo}</url>
     <inceptionYear>2013</inceptionYear>
-
     <licenses>
         <license>
             <name>European Union Public Licence (EUPL)</name>
@@ -29,6 +26,13 @@
             <organizationUrl>https://www.nbb.be</organizationUrl>
         </developer>
     </developers>
+
+    <modules>
+        <module>jdplus-incubator-base</module>
+        <module>jdplus-incubator-desktop</module>
+        <module>jdplus-incubator-cli</module>
+        <module>jdplus-incubator-bom</module>
+    </modules>
 
     <scm>
         <connection>scm:git:git://github.com/${x.github.user}/${x.github.repo}.git</connection>
@@ -66,13 +70,6 @@
         <java-io-util.version>0.0.39</java-io-util.version>
         <heylogs.version>0.19.1</heylogs.version>
     </properties>
-
-    <modules>
-        <module>jdplus-incubator-base</module>
-        <module>jdplus-incubator-desktop</module>
-        <module>jdplus-incubator-cli</module>
-        <module>jdplus-incubator-bom</module>
-    </modules>
 
     <dependencies>
         <!-- annotations & processors -->
@@ -115,6 +112,38 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- Custom repositories: order matters! -->
+    <!-- Maven Central is enforced at top to prevent dependabot to use snapshots as releases -->
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>old-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <build>
         <pluginManagement>
@@ -170,6 +199,28 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>3.6.3</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.kordamp.maven</groupId>
+                            <artifactId>pomchecker-enforcer-rules</artifactId>
+                            <version>1.15.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>extra-enforcer-rules</artifactId>
+                            <version>1.12.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.github.nbbrd.heylogs</groupId>
+                            <artifactId>heylogs-enforcer-rules</artifactId>
+                            <version>${heylogs.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.github.nbbrd.nbbrd-maven-tools</groupId>
+                            <artifactId>nbbrd-enforcer-rules</artifactId>
+                            <version>1.3.0</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.gaul</groupId>
@@ -215,6 +266,16 @@
                     <groupId>org.sonatype.central</groupId>
                     <artifactId>central-publishing-maven-plugin</artifactId>
                     <version>0.11.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>tidy-maven-plugin</artifactId>
+                    <version>1.4.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>3.10.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jreleaser</groupId>
@@ -293,23 +354,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>extra-enforcer-rules</artifactId>
-                        <version>1.12.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.kordamp.maven</groupId>
-                        <artifactId>pomchecker-enforcer-rules</artifactId>
-                        <version>1.15.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>com.github.nbbrd.heylogs</groupId>
-                        <artifactId>heylogs-enforcer-rules</artifactId>
-                        <version>${heylogs.version}</version>
-                    </dependency>
-                </dependencies>
                 <executions>
                     <execution>
                         <id>enforce-root-on-validate</id>
@@ -368,6 +412,12 @@
                                 <!-- heylogs-enforcer-rules -->
                                 <checkChangelog/>
                                 <formatChangelog/>
+                                <!-- nbbrd-enforcer-rules -->
+                                <requireArtifactIdPattern>
+                                    <packagings>nbm</packagings>
+                                    <pattern>^.+-desktop-(plugin|branding)$</pattern>
+                                    <message>nbm artifacts must follow the "*-desktop-plugin" naming convention</message>
+                                </requireArtifactIdPattern>
                             </rules>
                         </configuration>
                     </execution>
@@ -445,6 +495,41 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>tidy-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <configuration>
+                    <java>
+                        <googleJavaFormat>
+                            <style>AOSP</style>
+                        </googleJavaFormat>
+                        <importOrder/>
+                        <removeUnusedImports />
+                        <formatAnnotations />
+                    </java>
+                    <ratchetFrom>origin/develop</ratchetFrom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -481,6 +566,24 @@
                             <sourcepath>${project.build.directory}/no-source</sourcepath>
                             <quiet>true</quiet>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-javadoc</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <phase>verify</phase>
+                                <configuration>
+                                    <rules>
+                                        <requireJavadocJar/>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.simplify4u.plugins</groupId>
@@ -544,39 +647,8 @@
                 <forbiddenapis.skip>true</forbiddenapis.skip>
                 <jacoco.skip>true</jacoco.skip>
                 <heylogs.skip>true</heylogs.skip>
+                <tidy.skip>true</tidy.skip>
             </properties>
         </profile>
     </profiles>
-
-    <!-- Custom repositories: order matters! -->
-    <!-- Maven Central is enforced at top to prevent dependabot to use snapshots as releases -->
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>central-snapshots</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>old-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>
