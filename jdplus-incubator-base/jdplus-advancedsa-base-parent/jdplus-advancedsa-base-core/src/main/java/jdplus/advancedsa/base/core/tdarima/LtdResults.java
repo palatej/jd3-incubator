@@ -16,35 +16,24 @@
 package jdplus.advancedsa.base.core.tdarima;
 
 import java.util.List;
-import jdplus.advancedsa.base.api.tdarima.LtdSarimaSpec;
-import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.information.GenericExplorable;
-import jdplus.toolkit.base.api.math.matrices.Matrix;
-import jdplus.toolkit.base.api.timeseries.TsResiduals;
-import jdplus.toolkit.base.core.regarima.RegArimaModel;
-import jdplus.toolkit.base.core.sarima.SarimaModel;
-import jdplus.toolkit.base.core.stats.likelihood.LikelihoodStatistics;
 
 /**
- *
  * @author Jean Palate
  */
 @lombok.Builder(builderClassName = "Builder")
 @lombok.Value
-public class LtdResults  implements GenericExplorable{
-
+public class LtdResults implements GenericExplorable {
 
     SarimaResults start;
 
-    @lombok.Singular
-    List<LtdSarimaResults> ltdResults;
-    
-    public LtdSarimaResults finalResults(){
+    @lombok.Singular List<LtdSarimaResults> ltdResults;
+
+    public LtdSarimaResults finalResults() {
         return ltdResults.getLast();
     }
 
-    public LtdSarimaResults initialResults(){
+    public LtdSarimaResults initialResults() {
         return ltdResults.getFirst();
     }
-
 }

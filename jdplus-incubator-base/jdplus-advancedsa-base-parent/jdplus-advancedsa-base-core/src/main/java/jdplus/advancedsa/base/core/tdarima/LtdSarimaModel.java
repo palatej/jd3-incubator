@@ -16,7 +16,6 @@
 package jdplus.advancedsa.base.core.tdarima;
 
 import jdplus.advancedsa.base.api.tdarima.LtdSarimaSpec;
-import jdplus.toolkit.base.api.arima.SarimaOrders;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.data.DoublesMath;
 import jdplus.toolkit.base.core.arima.ArimaModel;
@@ -25,7 +24,6 @@ import jdplus.toolkit.base.core.sarima.SarimaModel;
 import jdplus.toolkit.base.core.ssf.univariate.Ssf;
 
 /**
- *
  * @author Jean Palate
  */
 @lombok.Value
@@ -34,15 +32,15 @@ public class LtdSarimaModel {
 
     private final LtdSarimaSpec.Orders spec;
     private final DoubleSeq p0, p1;
-    private final double var1;
+    private final double var0, var1;
     private final int n;
 
-    public static LtdSarimaModel of(LtdSarimaSpec.Orders spec, DoubleSeq p, int n) {
-        return new LtdSarimaModel(spec, p, p, 1, n);
+    public static Builder builder() {
+        return new Builder().var0(1).var1(1);
     }
-    
-    public static Builder builder(){
-        return new Builder().var1(1);
+
+    public static LtdSarimaModel of(LtdSarimaSpec.Orders spec, DoubleSeq p, int n) {
+        return new LtdSarimaModel(spec, p, p, 1, 1, n);
     }
 
     public Ssf ssf() {
@@ -50,20 +48,26 @@ public class LtdSarimaModel {
         DoubleSeq delta = DoublesMath.subtract(p1, p0);
         double r = 1.0 / (n - 1);
 
-        return TdSsfArima.ssf(n, i -> {
-            DataBlock q = DataBlock.of(p0);
-            q.addAY(i * r, delta);
-            SarimaModel sarima = SarimaModel.builder(spec.asSarimaOrders())
-                    .parameters(q)
-                    .build();
-            double e1 = Math.sqrt(var1);
-            double et = 1 + (i * r) * (e1 - 1);
-            return new ArimaModel(sarima.getStationaryAr(), sarima.getNonStationaryAr(), sarima.getMa(), et * et);
-        });
+        return TdSsfArima.ssf(
+                n,
+                i -> {
+                    DataBlock q = DataBlock.of(p0);
+                    q.addAY(i * r, delta);
+                    SarimaModel sarima =
+                            SarimaModel.builder(spec.asSarimaOrders()).parameters(q).build();
+                    double e0 = var0 == 1 ? 1 : Math.sqrt(var0),
+                            e1 = var1 == 1 ? 1 : Math.sqrt(var1);
+                    double et = e0 + (i * r) * (e1 - e0);
+                    return new ArimaModel(
+                            sarima.getStationaryAr(),
+                            sarima.getNonStationaryAr(),
+                            sarima.getMa(),
+                            et * et);
+                });
     }
 
     public boolean isTimeVarying() {
-        if (var1 != 1) {
+        if (var1 != var0) {
             return true;
         }
         if (p0.equals(p1)) {
@@ -99,7 +103,7 @@ public class LtdSarimaModel {
         if (p > 0) {
             builder.vBtheta(!p0.range(j, j + p).hasSameContentAs(p1.range(j, j + p)));
         }
-        builder.vVar(var1 != 1);
+        builder.vVar(var1 != var0);
         return builder.build();
     }
 }
