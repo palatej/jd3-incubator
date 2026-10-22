@@ -15,10 +15,10 @@
  */
 package jdplus.advancedsa.base.core.tdarima.extractors;
 
-import jdplus.advancedsa.base.api.tdarima.LtdDictionaries;
-import jdplus.advancedsa.base.core.tdarima.LtdResults;
-import jdplus.advancedsa.base.core.tdarima.LtdSarimaResults;
+import jdplus.advancedsa.base.api.tdarima.TdArimaDictionaries;
 import jdplus.advancedsa.base.core.tdarima.SarimaResults;
+import jdplus.advancedsa.base.core.tdarima.TdResults;
+import jdplus.advancedsa.base.core.tdarima.TdSarimaResults;
 import jdplus.toolkit.base.api.information.InformationExtractor;
 import jdplus.toolkit.base.api.information.InformationMapping;
 import nbbrd.design.Development;
@@ -29,28 +29,30 @@ import nbbrd.service.ServiceProvider;
  */
 @Development(status = Development.Status.Release)
 @ServiceProvider(InformationExtractor.class)
-public class LtdResultsExtractor extends InformationMapping<LtdResults> {
+public class LtdResultsExtractor extends InformationMapping<TdResults> {
 
     @Override
-    public Class<LtdResults> getSourceClass() {
-        return LtdResults.class;
+    public Class<TdResults> getSourceClass() {
+        return TdResults.class;
     }
 
     public LtdResultsExtractor() {
-        delegate(LtdDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
-        delegateArray(LtdDictionaries.ITER, 0, 10, LtdSarimaResults.class, (source, i) -> {
+        delegate(TdArimaDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
+        delegateArray(TdArimaDictionaries.ITER, 0, 10, TdSarimaResults.class, (source, i) -> {
             int last = source.getLtdResults().size() - 1;
             if (i > last) {
                 return null;
             }
             return source.getLtdResults().get(i);
         });
-        delegate(LtdDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
-        delegate(LtdDictionaries.FINAL_STEP, LtdSarimaResults.class, source -> source.finalResults());
-        delegate(LtdDictionaries.INITIAL_STEP, LtdSarimaResults.class, source -> source.results(0));
-        set(LtdDictionaries.NITERS, Integer.class, source -> source.getLtdResults()
-                .size());
-        set(LtdDictionaries.TIME_VARYING, Boolean.class, source -> source.isTimeVarying());
+        delegate(TdArimaDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
+        delegate(TdArimaDictionaries.FINAL_STEP, TdSarimaResults.class, source -> source.finalResults());
+        delegate(TdArimaDictionaries.INITIAL_STEP, TdSarimaResults.class, source -> source.results(0));
+        set(
+                TdArimaDictionaries.NITERS,
+                Integer.class,
+                source -> source.getLtdResults().size());
+        set(TdArimaDictionaries.TIME_VARYING, Boolean.class, source -> source.isTimeVarying());
     }
 
     //    private String mlItem(String key) {
@@ -58,11 +60,11 @@ public class LtdResultsExtractor extends InformationMapping<LtdResults> {
     //    }
     //
     //    private String regItem(String key) {
-    //        return Dictionary.concatenate(LtdDictionaries.REGRESSION, key);
+    //        return Dictionary.concatenate(TdArimaDictionaries.REGRESSION, key);
     //    }
     //
     //    private String modelItem(String key) {
-    //        return Dictionary.concatenate(LtdDictionaries.MODEL, key);
+    //        return Dictionary.concatenate(TdArimaDictionaries.MODEL, key);
     //    }
     //
 }

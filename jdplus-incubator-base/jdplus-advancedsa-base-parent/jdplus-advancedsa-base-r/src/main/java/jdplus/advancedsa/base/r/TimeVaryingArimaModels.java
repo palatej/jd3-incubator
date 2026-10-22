@@ -16,13 +16,13 @@
 package jdplus.advancedsa.base.r;
 
 import java.util.Locale;
-import jdplus.advancedsa.base.api.tdarima.LtdSarimaModelSpec;
-import jdplus.advancedsa.base.api.tdarima.LtdSarimaSpec;
-import jdplus.advancedsa.base.api.tdarima.LtdSpec;
-import jdplus.advancedsa.base.core.tdarima.LtdKernel;
-import jdplus.advancedsa.base.core.tdarima.LtdResults;
+import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
+import jdplus.advancedsa.base.api.tdarima.TdSarimaModelSpec;
+import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.advancedsa.base.core.tdarima.TdAirlineDecomposer;
 import jdplus.advancedsa.base.core.tdarima.TdArimaDecomposer;
+import jdplus.advancedsa.base.core.tdarima.TdDecompositionKernel;
+import jdplus.advancedsa.base.core.tdarima.TdResults;
 import jdplus.advancedsa.base.core.tdarima.TdSsfUcarima;
 import jdplus.toolkit.base.api.arima.SarimaOrders;
 import jdplus.toolkit.base.api.data.DoubleSeq;
@@ -124,25 +124,24 @@ public class TimeVaryingArimaModels {
         }
     }
 
-    public LtdResults estimate(
+    public TdResults estimate(
             double[] data,
             int period,
             boolean mean,
             Matrix X,
             int[] regular,
             int[] seasonal,
-            boolean fphi,
-            boolean fbphi,
-            boolean ftheta,
-            boolean fbtheta,
+            boolean far,
+            boolean fma,
             boolean fvar,
             String param,
             double eps,
             double simplificationThreshold) {
 
-        LtdSpec.Parametrization pltd = LtdSpec.Parametrization.valueOf(param.toUpperCase(Locale.ROOT));
+        TdEstimationSpec.Parametrization pltd =
+                TdEstimationSpec.Parametrization.valueOf(param.toUpperCase(Locale.ROOT));
 
-        LtdSarimaSpec.Orders sspec = LtdSarimaSpec.Orders.builder()
+        TdSarimaSpec.Orders sspec = TdSarimaSpec.Orders.builder()
                 .period(period)
                 .p(regular[0])
                 .d(regular[1])
@@ -151,22 +150,17 @@ public class TimeVaryingArimaModels {
                 .bd(period > 1 ? seasonal[1] : 0)
                 .bq(period > 1 ? seasonal[2] : 0)
                 .build();
-        LtdSarimaSpec modelspec = LtdSarimaSpec.builder()
-                .orders(sspec)
-                .vPhi(!fphi)
-                .vBphi(!fbphi)
-                .vTheta(!ftheta)
-                .vBtheta(!fbtheta)
-                .vVar(!fvar)
-                .build();
 
-        LtdSpec spec = LtdSpec.builder()
+        TdEstimationSpec spec = TdEstimationSpec.builder()
                 .parametrization(pltd)
                 .precision(eps)
                 .simplificationThreshold(simplificationThreshold)
+                .tdAutoregressive(!far)
+                .tdMovingAverage(!fma)
+                .tdAutoregressive(!fvar)
                 .build();
-        LtdKernel kernel = LtdKernel.of(spec);
-        return kernel.process(DoubleSeq.of(data), mean, FastMatrix.of(X), modelspec);
+        TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
+        return kernel.process(DoubleSeq.of(data), mean, FastMatrix.of(X), sspec);
     }
 
     //    public LtdSarimaResults estimate(double[] data, int period, Matrix X, int[] regular, int[] seasonal,
@@ -176,16 +170,16 @@ public class TimeVaryingArimaModels {
     //            boolean fphi, boolean fbphi, boolean ftheta, boolean fbtheta, boolean fvar,
     //            double eps) {
     //
-    //        LtdSarimaModelSpec spec =specOf(period, regular, seasonal,
+    //        TdSarimaModelSpec spec =specOf(period, regular, seasonal,
     //            phi, bphi, theta, btheta,
     //            dphi, dbphi, dtheta, dbtheta, dvar,
     //            fphi, fbphi, ftheta, fbtheta, fvar);
     //
-    //        LtdKernel kernel=LtdKernel.of(spec);
+    //        TdDecompositionKernel kernel=TdDecompositionKernel.of(spec);
     //        return null;
     //    }
     // use p and fphi or p and phi (dphi == null) or p and phi and dphi
-    public LtdSarimaModelSpec SarimaSpecOf(
+    public TdSarimaModelSpec SarimaSpecOf(
             int period,
             int[] regular,
             int[] seasonal,
@@ -203,7 +197,7 @@ public class TimeVaryingArimaModels {
             boolean ftheta,
             boolean fbtheta,
             boolean fvar) {
-        LtdSarimaModelSpec.Builder builder = LtdSarimaModelSpec.builder().period(period);
+        TdSarimaModelSpec.Builder builder = TdSarimaModelSpec.builder().period(period);
 
         int p = regular[0];
         if (p > 0) {

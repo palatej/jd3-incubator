@@ -15,8 +15,8 @@
  */
 package jdplus.advancedsa.base.core.tdarima.extractors;
 
-import jdplus.advancedsa.base.api.tdarima.LtdDictionaries;
-import jdplus.advancedsa.base.core.tdarima.LtdSarimaResults;
+import jdplus.advancedsa.base.api.tdarima.TdArimaDictionaries;
+import jdplus.advancedsa.base.core.tdarima.TdSarimaResults;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.dictionaries.Dictionary;
 import jdplus.toolkit.base.api.information.InformationExtractor;
@@ -33,68 +33,89 @@ import nbbrd.service.ServiceProvider;
  */
 @Development(status = Development.Status.Release)
 @ServiceProvider(InformationExtractor.class)
-public class LtdSarimaResultsExtractor extends InformationMapping<LtdSarimaResults> {
+public class LtdSarimaResultsExtractor extends InformationMapping<TdSarimaResults> {
 
     @Override
-    public Class<LtdSarimaResults> getSourceClass() {
-        return LtdSarimaResults.class;
+    public Class<TdSarimaResults> getSourceClass() {
+        return TdSarimaResults.class;
     }
 
     public LtdSarimaResultsExtractor() {
-        set(modelItem(LtdDictionaries.PARAMETERS_NAMES), String[].class, s -> s.getParametersNames());
-        set(modelItem(LtdDictionaries.PARAMETERS_ALL), double[].class, s -> s.getParameters()
-                .toArray());
-        set(modelItem(LtdDictionaries.PARAMETERS_ALL_COV), Matrix.class, source -> source.getParametersCovariance());
-        set(modelItem(LtdDictionaries.PARAMETERS_V0), Double.class, s -> s.getModel()
-                .getVar0());
-        set(modelItem(LtdDictionaries.PARAMETERS_V1), Double.class, s -> s.getModel()
-                .getVar1());
-        set(modelItem(LtdDictionaries.PARAMETERS_P0), double[].class, s -> s.getModel()
-                .getP0()
-                .toArray());
-        set(modelItem(LtdDictionaries.PARAMETERS_P1), double[].class, s -> s.getModel()
-                .getP1()
-                .toArray());
-        set(modelItem(LtdDictionaries.PARAMETERS_MEAN), double[].class, s -> {
+        set(modelItem(TdArimaDictionaries.PARAMETERS_NAMES), String[].class, s -> s.getParametersNames());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_ALL),
+                double[].class,
+                s -> s.getParameters().toArray());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_ALL_COV),
+                Matrix.class,
+                source -> source.getParametersCovariance());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_V0),
+                Double.class,
+                s -> s.getModel().getVar0());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_V1),
+                Double.class,
+                s -> s.getModel().getVar1());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_P0),
+                double[].class,
+                s -> s.getModel().getP0().toArray());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_P1),
+                double[].class,
+                s -> s.getModel().getP1().toArray());
+        set(modelItem(TdArimaDictionaries.PARAMETERS_MEAN), double[].class, s -> {
             DoubleSeq p0 = s.getModel().getP0();
             DoubleSeq p1 = s.getModel().getP1();
             int n = p0.length();
             return DoubleSeq.onMapping(n, i -> (p0.get(i) + p1.get(i)) / 2).toArray();
         });
-        set(modelItem(LtdDictionaries.PARAMETERS_DELTA), double[].class, s -> {
+        set(modelItem(TdArimaDictionaries.PARAMETERS_DELTA), double[].class, s -> {
             DoubleSeq p0 = s.getModel().getP0();
             DoubleSeq p1 = s.getModel().getP1();
             int n = s.getModel().getN() - 1;
             return DoubleSeq.onMapping(p0.length(), i -> (p1.get(i) - p0.get(i)) / n)
                     .toArray();
         });
-        set(modelItem(LtdDictionaries.PARAMETERS_DERIVED_NAMES), String[].class, s -> s.getDerivedParametersNames());
-        set(modelItem(LtdDictionaries.PARAMETERS_DERIVED), double[].class, s -> s.getDerivedParameters()
-                .toArray());
-        set(modelItem(LtdDictionaries.PARAMETERS_DERIVED_COV), Matrix.class, s -> s.getDerivedParametersCovariance());
-        set(modelItem(LtdDictionaries.TEST_STATIONARITY), StatisticalTest.class, s -> s.getStationarityTest());
-        set(modelItem(LtdDictionaries.LRTEST), StatisticalTest.class, s -> s.getLikelihoodRatioTest());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_DERIVED_NAMES),
+                String[].class,
+                s -> s.getDerivedParametersNames());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_DERIVED),
+                double[].class,
+                s -> s.getDerivedParameters().toArray());
+        set(
+                modelItem(TdArimaDictionaries.PARAMETERS_DERIVED_COV),
+                Matrix.class,
+                s -> s.getDerivedParametersCovariance());
+        set(modelItem(TdArimaDictionaries.TEST_STATIONARITY), StatisticalTest.class, s -> s.getStationarityTest());
+        set(modelItem(TdArimaDictionaries.LRTEST), StatisticalTest.class, s -> s.getLikelihoodRatioTest());
         //        set(mlItem("information1"), Matrix.class, source ->
         // source.getLtd().getMax().getInformation());
         //        set(mlItem("score1"), double[].class, source ->
         // source.getLtd().getMax().getScore().toArray());
-        delegate(LtdDictionaries.LIKELIHOOD, LikelihoodStatistics.class, source -> source.getLikelihood());
-        delegate(LtdDictionaries.RESIDUALS, TsResiduals.class, source -> source.getResiduals());
+        delegate(TdArimaDictionaries.LIKELIHOOD, LikelihoodStatistics.class, source -> source.getLikelihood());
+        delegate(TdArimaDictionaries.RESIDUALS, TsResiduals.class, source -> source.getResiduals());
 
         set(
-                regItem(LtdDictionaries.REGS_C),
+                regItem(TdArimaDictionaries.REGS_C),
                 double[].class,
                 s -> s.getCoefficients().isEmpty() ? null : s.getCoefficients().toArray());
         set(
-                regItem(LtdDictionaries.REGS_COV),
+                regItem(TdArimaDictionaries.REGS_COV),
                 Matrix.class,
                 s -> s.getCovariance().isEmpty() ? null : s.getCovariance());
         set(
-                regItem(LtdDictionaries.REGS_EFFECT),
+                regItem(TdArimaDictionaries.REGS_EFFECT),
                 double[].class,
                 s -> s.getRegsEffect().isEmpty() ? null : s.getRegsEffect().toArray());
-        set(regItem(LtdDictionaries.Y_LIN), double[].class, s -> s.getLinearizedSeries()
-                .toArray());
+        set(
+                regItem(TdArimaDictionaries.Y_LIN),
+                double[].class,
+                s -> s.getLinearizedSeries().toArray());
     }
 
     //    private String mlItem(String key) {
@@ -102,10 +123,10 @@ public class LtdSarimaResultsExtractor extends InformationMapping<LtdSarimaResul
     //    }
     //
     private String regItem(String key) {
-        return Dictionary.concatenate(LtdDictionaries.REGRESSION, key);
+        return Dictionary.concatenate(TdArimaDictionaries.REGRESSION, key);
     }
 
     private String modelItem(String key) {
-        return Dictionary.concatenate(LtdDictionaries.MODEL, key);
+        return Dictionary.concatenate(TdArimaDictionaries.MODEL, key);
     }
 }
