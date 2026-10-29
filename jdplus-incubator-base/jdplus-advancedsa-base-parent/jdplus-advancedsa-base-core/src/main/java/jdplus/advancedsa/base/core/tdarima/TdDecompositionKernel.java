@@ -105,7 +105,7 @@ public class TdDecompositionKernel {
                 builder.isTimeVarying(false);
                 break;
             }
-            builder.ltdResult(step).isTimeVarying(true);
+            builder.tdResult(step).isTimeVarying(true);
             if (t == 0) {
                 break;
             } else if (!step.getLikelihoodRatioTest().isSignificant(t)) {

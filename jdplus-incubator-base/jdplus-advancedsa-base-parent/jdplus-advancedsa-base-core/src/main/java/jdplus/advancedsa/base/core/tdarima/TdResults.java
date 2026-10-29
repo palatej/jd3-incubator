@@ -31,15 +31,15 @@ public class TdResults implements GenericExplorable {
     SarimaResults start;
 
     @lombok.Singular
-    List<TdSarimaResults> ltdResults;
+    List<TdSarimaResults> tdResults;
 
     boolean isTimeVarying;
 
     public TdSarimaResults finalResults() {
-        return isTimeVarying ? ltdResults.getLast() : null;
+        return isTimeVarying ? tdResults.getLast() : null;
     }
 
     public TdSarimaResults results(int idx) {
-        return ltdResults.get(idx);
+        return tdResults.get(idx);
     }
 }

@@ -29,21 +29,21 @@ import nbbrd.service.ServiceProvider;
  */
 @Development(status = Development.Status.Release)
 @ServiceProvider(InformationExtractor.class)
-public class LtdResultsExtractor extends InformationMapping<TdResults> {
+public class TdResultsExtractor extends InformationMapping<TdResults> {
 
     @Override
     public Class<TdResults> getSourceClass() {
         return TdResults.class;
     }
 
-    public LtdResultsExtractor() {
+    public TdResultsExtractor() {
         delegate(TdArimaDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
         delegateArray(TdArimaDictionaries.ITER, 0, 10, TdSarimaResults.class, (source, i) -> {
-            int last = source.getLtdResults().size() - 1;
+            int last = source.getTdResults().size() - 1;
             if (i > last) {
                 return null;
             }
-            return source.getLtdResults().get(i);
+            return source.getTdResults().get(i);
         });
         delegate(TdArimaDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
         delegate(TdArimaDictionaries.FINAL_STEP, TdSarimaResults.class, source -> source.finalResults());
@@ -51,7 +51,7 @@ public class LtdResultsExtractor extends InformationMapping<TdResults> {
         set(
                 TdArimaDictionaries.NITERS,
                 Integer.class,
-                source -> source.getLtdResults().size());
+                source -> source.getTdResults().size());
         set(TdArimaDictionaries.TIME_VARYING, Boolean.class, source -> source.isTimeVarying());
     }
 
