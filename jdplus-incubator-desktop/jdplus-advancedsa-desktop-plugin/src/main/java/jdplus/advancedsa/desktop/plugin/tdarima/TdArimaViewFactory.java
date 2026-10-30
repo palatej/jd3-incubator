@@ -8,19 +8,35 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import jdplus.advancedsa.base.core.tdarima.TdArimaDocument;
 import jdplus.advancedsa.base.core.tdarima.TdModellingResults;
+import jdplus.advancedsa.base.core.tdarima.TdResults;
+import jdplus.advancedsa.desktop.plugin.tdarima.html.HtmlTdArimaSelection;
+import jdplus.sa.base.api.SaDictionaries;
 import jdplus.sa.desktop.plugin.ui.SaViews;
+import jdplus.toolkit.base.api.dictionaries.Dictionary;
+import jdplus.toolkit.base.api.dictionaries.RegressionDictionaries;
+import jdplus.toolkit.base.api.timeseries.TsData;
+import jdplus.toolkit.base.api.timeseries.TsDocument;
 import jdplus.toolkit.base.api.util.Id;
 import jdplus.toolkit.base.api.util.LinearId;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
+import jdplus.toolkit.desktop.plugin.TsDynamicProvider;
 import jdplus.toolkit.desktop.plugin.html.HtmlElement;
 import jdplus.toolkit.desktop.plugin.html.modelling.HtmlRegSarima;
+import jdplus.toolkit.desktop.plugin.modelling.ForecastsFactory;
 import jdplus.toolkit.desktop.plugin.modelling.InputFactory;
+import jdplus.toolkit.desktop.plugin.modelling.ModelArimaFactory;
+import jdplus.toolkit.desktop.plugin.modelling.ModelRegressorsFactory;
+import jdplus.toolkit.desktop.plugin.modelling.NiidTestsFactory;
+import jdplus.toolkit.desktop.plugin.modelling.OutOfSampleTestFactory;
 import jdplus.toolkit.desktop.plugin.modelling.RegSarimaViews;
+import jdplus.toolkit.desktop.plugin.ui.processing.GenericTableUI;
 import jdplus.toolkit.desktop.plugin.ui.processing.HtmlItemUI;
 import jdplus.toolkit.desktop.plugin.ui.processing.IProcDocumentItemFactory;
 import jdplus.toolkit.desktop.plugin.ui.processing.IProcDocumentViewFactory;
 import jdplus.toolkit.desktop.plugin.ui.processing.ProcDocumentItemFactory;
 import jdplus.toolkit.desktop.plugin.ui.processing.ProcDocumentViewFactory;
+import jdplus.toolkit.desktop.plugin.ui.processing.stats.ResidualsDistUI;
+import jdplus.toolkit.desktop.plugin.ui.processing.stats.ResidualsUI;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -87,21 +103,21 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
     //        return tr == null ? null : tr.getDiagnostics();
     //    };
     //
-    //   private final static Function<TdArimaDocument, BsmResults> BSMEXTRACTOR = source -> {
-    //        TdResults tr = source.getResult();
-    //        return tr == null ? null : tr.getSts();
-    //    };
+    private static final Function<TdArimaDocument, TdResults> TDARIMAEXTRACTOR = source -> {
+        TdModellingResults tr = source.getResult();
+        return tr == null ? null : tr.getTdarima();
+    };
+    private static final Function<TdArimaDocument, TsData> RESEXTRACTOR =
+            MODELEXTRACTOR.andThen(regarima -> regarima == null ? null : regarima.fullResiduals());
 
-    //   private final static Function<TdArimaDocument, TsData> RESEXTRACTOR = MODELEXTRACTOR
-    //            .andThen(regarima -> regarima == null ? null : regarima.fullResiduals());
-    //
-    //    private static String generateId(String name, String id) {
-    //        return TsDynamicProvider.CompositeTs.builder()
-    //                .name(name)
-    //                .now(id)
-    //                .build().toString();
-    //    }
-    //
+    private static String generateId(String name, String id) {
+        return TsDynamicProvider.CompositeTs.builder()
+                .name(name)
+                .now(id)
+                .build()
+                .toString();
+    }
+
     //    public static String[] lowSeries() {
     //        return new String[]{
     //            generateId("Series", SaDictionaries.Y),
@@ -258,164 +274,168 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
         }
     }
 
-    //// </editor-fold>
-    //// <editor-fold defaultstate="collapsed" desc="PREPROCESSING-FORECASTS">
-    ////    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3110)
-    ////    public static class ForecastsTable extends ProcDocumentItemFactory<TdArimaDocument, TsDocument> {
-    ////
-    ////        public ForecastsTable() {
-    ////            super(TdArimaDocument.class, SaViews.PREPROCESSING_FCASTS_TABLE, s -> s, new
-    ////GenericTableUI(false,
-    //// generateItems()));
-    ////        }
-    ////
-    ////        @Override
-    ////        public int getPosition() {
-    ////            return 3110;
-    ////        }
-    ////
-    ////        private static String[] generateItems() {
-    ////            return new String[]{RegressionDictionaries.Y_F, RegressionDictionaries.Y_EF};
-    ////        }
-    ////    }
-    ////
-    ////    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3100)
-    ////    public static class FCastsFactory extends ForecastsFactory<TdArimaDocument> {
-    ////
-    ////        public FCastsFactory() {
-    ////            super(TdArimaDocument.class, SaViews.PREPROCESSING_FCASTS, MODELEXTRACTOR);
-    ////        }
-    ////
-    ////        @Override
-    ////        public int getPosition() {
-    ////            return 3100;
-    ////        }
-    ////    }
-    ////
-    ////    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3120)
-    ////    public static class FCastsOutFactory extends OutOfSampleTestFactory<TdArimaDocument> {
-    ////
-    ////        public FCastsOutFactory() {
-    ////            super(TdArimaDocument.class, SaViews.PREPROCESSING_FCASTS_OUTOFSAMPLE, MODELEXTRACTOR);
-    ////        }
-    ////
-    ////        @Override
-    ////        public int getPosition() {
-    ////            return 3120;
-    ////        }
-    ////    }
-    //// </editor-fold>
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="PREPROCESSING-FORECASTS">
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3110)
+    public static class ForecastsTable extends ProcDocumentItemFactory<TdArimaDocument, TsDocument> {
+
+        public ForecastsTable() {
+            super(
+                    TdArimaDocument.class,
+                    SaViews.PREPROCESSING_FCASTS_TABLE,
+                    s -> s,
+                    new GenericTableUI(false, generateItems()));
+        }
+
+        @Override
+        public int getPosition() {
+            return 3110;
+        }
+
+        private static String[] generateItems() {
+            return new String[] {RegressionDictionaries.Y_F, RegressionDictionaries.Y_EF};
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3100)
+    public static class FCastsFactory extends ForecastsFactory<TdArimaDocument> {
+
+        public FCastsFactory() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_FCASTS, MODELEXTRACTOR);
+        }
+
+        @Override
+        public int getPosition() {
+            return 3100;
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3120)
+    public static class FCastsOutFactory extends OutOfSampleTestFactory<TdArimaDocument> {
+
+        public FCastsOutFactory() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_FCASTS_OUTOFSAMPLE, MODELEXTRACTOR);
+        }
+
+        @Override
+        public int getPosition() {
+            return 3120;
+        }
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="PREPROCESSING-DETAILS">
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3200)
+    public static class ModelRegsFactory extends ModelRegressorsFactory<TdArimaDocument> {
+
+        public ModelRegsFactory() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_REGS, MODELEXTRACTOR);
+        }
+
+        @Override
+        public int getPosition() {
+            return 3200;
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3300)
+    public static class ArimaFactory extends ModelArimaFactory {
+
+        public ArimaFactory() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_ARIMA, MODELEXTRACTOR);
+        }
+
+        @Override
+        public int getPosition() {
+            return 3300;
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3400)
+    public static class PreprocessingDetFactory extends ProcDocumentItemFactory<TdArimaDocument, TsDocument> {
+
+        public PreprocessingDetFactory() {
+            super(
+                    TdArimaDocument.class,
+                    SaViews.PREPROCESSING_DET,
+                    source -> source,
+                    new GenericTableUI(
+                            false,
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.YCAL),
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.YLIN),
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.DET),
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.CAL),
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.TDE),
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.EE),
+                            Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.OUT)));
+        }
+
+        @Override
+        public int getPosition() {
+            return 3400;
+        }
+    }
+    // </editor-fold>
     //
-    //// <editor-fold defaultstate="collapsed" desc="PREPROCESSING-DETAILS">
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3200)
-    //    public static class ModelRegsFactory extends ModelRegressorsFactory<TdArimaDocument> {
-    //
-    //        public ModelRegsFactory() {
-    //            super(TdArimaDocument.class, SaViews.PREPROCESSING_REGS, MODELEXTRACTOR);
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 3200;
-    //        }
-    //    }
-    //
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3300)
-    //    public static class ArimaFactory extends ModelArimaFactory {
-    //
-    //        public ArimaFactory() {
-    //            super(TdArimaDocument.class, SaViews.PREPROCESSING_ARIMA, MODELEXTRACTOR);
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 3300;
-    //        }
-    //    }
-    //
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3400)
-    //    public static class PreprocessingDetFactory extends ProcDocumentItemFactory<TdArimaDocument, TsDocument> {
-    //
-    //        public PreprocessingDetFactory() {
-    //            super(TdArimaDocument.class, SaViews.PREPROCESSING_DET, source -> source, new GenericTableUI(false,
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.YCAL),
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.YLIN),
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.DET),
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.CAL),
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.TDE),
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.EE),
-    //                    Dictionary.concatenate(SaDictionaries.PREPROCESSING, RegressionDictionaries.OUT)));
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 3400;
-    //        }
-    //    }
-    //// </editor-fold>
-    //
-    //// <editor-fold defaultstate="collapsed" desc="PREPROCESSING-RESIDUALS">
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3500)
-    //    public static class ModelResFactory extends ProcDocumentItemFactory<TdArimaDocument, TsData> {
-    //
-    //        public ModelResFactory() {
-    //            super(TdArimaDocument.class, SaViews.PREPROCESSING_RES, RESEXTRACTOR,
-    //                    new ResidualsUI()
-    //            );
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 3500;
-    //        }
-    //    }
-    //
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3510)
-    //    public static class ModelResStatsFactory extends NiidTestsFactory<TdArimaDocument> {
-    //
-    //        public ModelResStatsFactory() {
-    //            super(TdArimaDocument.class, SaViews.PREPROCESSING_RES_STATS, MODELEXTRACTOR);
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 3510;
-    //        }
-    //    }
-    //
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3520)
-    //    public static class ModelResDist extends ProcDocumentItemFactory<TdArimaDocument, TsData> {
-    //
-    //        public ModelResDist() {
-    //            super(TdArimaDocument.class, SaViews.PREPROCESSING_RES_DIST,
-    //                    RESEXTRACTOR,
-    //                    new ResidualsDistUI());
-    //
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 3520;
-    //        }
-    //    }
-    //// </editor-fold>
-    //    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 4000)
-    //    public static class StsSummaryFactory extends ProcDocumentItemFactory<TdArimaDocument, HtmlElement> {
-    //
-    //        public StsSummaryFactory() {
-    //
-    //            super(TdArimaDocument.class, MODEL_SELECTION, DECOMPOSITIONEXTRACTOR
-    //                    .andThen(sts -> sts == null ? null
-    //                    : new HtmlBsm(sts.getBsm(), false)),
-    //                    new HtmlItemUI());
-    //        }
-    //
-    //        @Override
-    //        public int getPosition() {
-    //            return 4000;
-    //        }
-    //    }
-    //
+    // <editor-fold defaultstate="collapsed" desc="PREPROCESSING-RESIDUALS">
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3500)
+    public static class ModelResFactory extends ProcDocumentItemFactory<TdArimaDocument, TsData> {
+
+        public ModelResFactory() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_RES, RESEXTRACTOR, new ResidualsUI());
+        }
+
+        @Override
+        public int getPosition() {
+            return 3500;
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3510)
+    public static class ModelResStatsFactory extends NiidTestsFactory<TdArimaDocument> {
+
+        public ModelResStatsFactory() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_RES_STATS, MODELEXTRACTOR);
+        }
+
+        @Override
+        public int getPosition() {
+            return 3510;
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 3520)
+    public static class ModelResDist extends ProcDocumentItemFactory<TdArimaDocument, TsData> {
+
+        public ModelResDist() {
+            super(TdArimaDocument.class, SaViews.PREPROCESSING_RES_DIST, RESEXTRACTOR, new ResidualsDistUI());
+        }
+
+        @Override
+        public int getPosition() {
+            return 3520;
+        }
+    }
+    // </editor-fold>
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 4000)
+    public static class StsSummaryFactory extends ProcDocumentItemFactory<TdArimaDocument, HtmlElement> {
+
+        public StsSummaryFactory() {
+
+            super(
+                    TdArimaDocument.class,
+                    MODEL_SELECTION,
+                    TDARIMAEXTRACTOR.andThen(
+                            tdresults -> tdresults == null ? null : new HtmlTdArimaSelection(tdresults)),
+                    new HtmlItemUI());
+        }
+
+        @Override
+        public int getPosition() {
+            return 4000;
+        }
+    }
+
     //     @ServiceProvider(service = IProcDocumentItemFactory.class, position = 4400)
     //    public static class StsSeriesFactory extends ProcDocumentItemFactory<TdArimaDocument, TsDocument> {
     //
@@ -436,6 +456,7 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
     //    }
     //
     //
+
     //// <editor-fold defaultstate="collapsed" desc="REGISTER FORECASTS">
     ////    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 200000 + 500)
     ////    public static class ForecastsTable extends ProcDocumentItemFactory<FractionalAirlineDocument,
