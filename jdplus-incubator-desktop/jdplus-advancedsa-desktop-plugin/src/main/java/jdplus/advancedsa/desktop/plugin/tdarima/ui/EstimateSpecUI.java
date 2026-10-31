@@ -26,9 +26,9 @@ import jdplus.toolkit.base.api.modelling.regular.EstimateSpec;
  */
 public class EstimateSpecUI extends AbstractEstimateSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public EstimateSpecUI(TdArimaSpecRoot root) {
+    public EstimateSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

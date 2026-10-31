@@ -26,9 +26,9 @@ import jdplus.toolkit.base.api.modelling.regular.EasterSpec;
  */
 public class EasterSpecUI extends AbstractEasterSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public EasterSpecUI(TdArimaSpecRoot root) {
+    public EasterSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

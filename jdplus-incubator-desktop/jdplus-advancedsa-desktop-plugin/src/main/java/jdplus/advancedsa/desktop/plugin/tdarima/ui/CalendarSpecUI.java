@@ -25,9 +25,9 @@ import jdplus.toolkit.desktop.plugin.descriptors.IPropertyDescriptors;
  */
 public class CalendarSpecUI extends AbstractCalendarSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public CalendarSpecUI(TdArimaSpecRoot root) {
+    public CalendarSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

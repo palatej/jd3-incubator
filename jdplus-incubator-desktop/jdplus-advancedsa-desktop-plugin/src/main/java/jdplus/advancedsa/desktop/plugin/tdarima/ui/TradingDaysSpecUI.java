@@ -26,9 +26,9 @@ import jdplus.toolkit.base.api.modelling.regular.TradingDaysSpec;
  */
 public class TradingDaysSpecUI extends AbstractTradingDaysSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public TradingDaysSpecUI(TdArimaSpecRoot root) {
+    public TradingDaysSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

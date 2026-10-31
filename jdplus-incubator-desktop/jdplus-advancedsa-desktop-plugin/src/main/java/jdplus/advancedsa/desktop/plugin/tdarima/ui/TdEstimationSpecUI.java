@@ -30,9 +30,9 @@ import jdplus.toolkit.desktop.plugin.descriptors.IPropertyDescriptors;
  */
 public class TdEstimationSpecUI implements IPropertyDescriptors {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public TdEstimationSpecUI(TdArimaSpecRoot root) {
+    public TdEstimationSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 
@@ -40,173 +40,137 @@ public class TdEstimationSpecUI implements IPropertyDescriptors {
         return root.getTdarima();
     }
 
-    //    public Parameter[] getCycleDumpingFactor(){
-    //        Parameter p=spec().getCycleDumpingFactor();
-    //        if (p == null)
-    //            p=Parameter.undefined();
-    //        return new Parameter[]{p};
-    //    }
-    //
-    //    public Parameter[] getCycleLength(){
-    //        Parameter p=core.getCyclicalPeriod();
-    //        if (p == null)
-    //            p=new Parameter();
-    //        return new Parameter[]{p};
-    //    }
+    public TdSarimaSpecUI getTdSarima() {
+        return new TdSarimaSpecUI(root);
+    }
 
-    //    public void setCycleDumpingFactor(Parameter[] p){
-    //        if (p != null && p.length == 1)
-    //            core.setCyclicalDumpingFactor(p[0]);
-    //    }
-    //
-    //    public void setCycleLength(Parameter[] p){
-    //        if (p != null && p.length == 1)
-    //            core.setCyclicalPeriod(p[0]);
-    //    }
-    //
-    private EnhancedPropertyDescriptor lDesc() {
+    private TdEstimationSpec core() {
+        return root.getTdarima();
+    }
+
+    public double getSimplificationThreshold() {
+        return core().getSimplificationThreshold();
+    }
+
+    public double getPrecision() {
+        return core().getPrecision();
+    }
+
+    public TdEstimationSpec.Parametrization getParametrization() {
+        return core().getParametrization();
+    }
+
+    public TdEstimationSpec.Transformation getFunction() {
+        return core().getTransformation();
+    }
+
+    public void setSimplificationThreshold(double p) {
+        if (p != core().getSimplificationThreshold()) {
+            root.update(core().toBuilder().simplificationThreshold(p).build());
+        }
+    }
+
+    public void setPrecision(double p) {
+        if (p != core().getPrecision()) {
+            root.update(core().toBuilder().precision(p).build());
+        }
+    }
+
+    public void setParametrization(TdEstimationSpec.Parametrization p) {
+        if (p != core().getParametrization()) {
+            root.update(core().toBuilder().parametrization(p).build());
+        }
+    }
+
+    public void setFunction(TdEstimationSpec.Transformation t) {
+        if (t != core().getTransformation()) {
+            root.update(core().toBuilder().transformation(t).build());
+        }
+    }
+
+    private EnhancedPropertyDescriptor precisionDesc() {
         try {
-            PropertyDescriptor desc = new PropertyDescriptor("level", this.getClass());
-            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, L_ID);
-            desc.setDisplayName(L_NAME);
-            desc.setShortDescription(L_DESC);
+            PropertyDescriptor desc = new PropertyDescriptor("precision", this.getClass());
+            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, EPS_ID);
+            desc.setDisplayName(EPS_NAME);
+            desc.setShortDescription(EPS_DESC);
             return edesc;
         } catch (IntrospectionException ex) {
             return null;
         }
     }
 
-    private EnhancedPropertyDescriptor sDesc() {
+    private EnhancedPropertyDescriptor thresholdDesc() {
         try {
-            PropertyDescriptor desc = new PropertyDescriptor("slope", this.getClass());
-            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, S_ID);
-            desc.setDisplayName(S_NAME);
-            desc.setShortDescription(S_DESC);
+            PropertyDescriptor desc = new PropertyDescriptor("simplificationThreshold", this.getClass());
+            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, TRESHOLD_ID);
+            desc.setDisplayName(TRESHOLD_NAME);
+            desc.setShortDescription(TRESHOLD_DESC);
             return edesc;
         } catch (IntrospectionException ex) {
             return null;
         }
     }
 
-    private EnhancedPropertyDescriptor smDesc() {
+    private EnhancedPropertyDescriptor parametrizationDesc() {
         try {
-            PropertyDescriptor desc = new PropertyDescriptor("model", this.getClass());
-            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, SM_ID);
-            desc.setDisplayName(SM_NAME);
-            desc.setShortDescription(SM_DESC);
+            PropertyDescriptor desc = new PropertyDescriptor("parametrization", this.getClass());
+            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, PARAM_ID);
+            desc.setDisplayName(PARAM_NAME);
+            desc.setShortDescription(PARAM_DESC);
             return edesc;
         } catch (IntrospectionException ex) {
             return null;
         }
     }
 
-    private EnhancedPropertyDescriptor nDesc() {
+    private EnhancedPropertyDescriptor fnDesc() {
         try {
-            PropertyDescriptor desc = new PropertyDescriptor("noise", this.getClass());
-            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, N_ID);
-            desc.setDisplayName(N_NAME);
-            desc.setShortDescription(N_DESC);
+            PropertyDescriptor desc = new PropertyDescriptor("function", this.getClass());
+            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, FN_ID);
+            desc.setDisplayName(FN_NAME);
+            desc.setShortDescription(FN_DESC);
             return edesc;
         } catch (IntrospectionException ex) {
             return null;
         }
     }
-
-    private EnhancedPropertyDescriptor cDesc() {
-        try {
-            PropertyDescriptor desc = new PropertyDescriptor("cycle", this.getClass());
-            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, C_ID);
-            desc.setDisplayName(C_NAME);
-            desc.setShortDescription(C_DESC);
-            return edesc;
-        } catch (IntrospectionException ex) {
-            return null;
-        }
-    }
-
-    //    private EnhancedPropertyDescriptor cdDesc() {
-    //        try {
-    //            if (core.getCycleUse() == ComponentUse.Unused) {
-    //                return null;
-    //            }
-    //            PropertyDescriptor desc = new PropertyDescriptor("cycleDumpingFactor", this.getClass());
-    //            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, CDUMP_ID);
-    //            desc.setDisplayName(CDUMP_NAME);
-    //            desc.setShortDescription(CDUMP_DESC);
-    //            return edesc;
-    //        } catch (IntrospectionException ex) {
-    //            return null;
-    //        }
-    //    }
-    //
-    //    private EnhancedPropertyDescriptor clDesc() {
-    //        try {
-    //            if (core.getCycleUse() == ComponentUse.Unused) {
-    //                return null;
-    //            }
-    //            PropertyDescriptor desc = new PropertyDescriptor("cycleLength", this.getClass());
-    //            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, CLEN_ID);
-    //            desc.setDisplayName(CLEN_NAME);
-    //            desc.setShortDescription(CLEN_DESC);
-    //            return edesc;
-    //        } catch (IntrospectionException ex) {
-    //            return null;
-    //        }
-    //    }
 
     @Override
     public List<EnhancedPropertyDescriptor> getProperties() {
         ArrayList<EnhancedPropertyDescriptor> descs = new ArrayList<>();
-        EnhancedPropertyDescriptor desc = lDesc();
+        EnhancedPropertyDescriptor desc = parametrizationDesc();
         if (desc != null) {
             descs.add(desc);
         }
-        desc = sDesc();
+        desc = fnDesc();
         if (desc != null) {
             descs.add(desc);
         }
-        desc = cDesc();
+        desc = thresholdDesc();
         if (desc != null) {
             descs.add(desc);
         }
-        //        desc = cdDesc();
-        //        if (desc != null) {
-        //            descs.add(desc);
-        //        }
-        //        desc = clDesc();
-        //        if (desc != null) {
-        //            descs.add(desc);
-        //        }
-        desc = nDesc();
-        if (desc != null) {
-            descs.add(desc);
-        }
-        desc = smDesc();
+        desc = precisionDesc();
         if (desc != null) {
             descs.add(desc);
         }
         return descs;
     }
 
-    public static final int L_ID = 0, S_ID = 1, C_ID = 2, CDUMP_ID = 3, CLEN_ID = 4, N_ID = 6, SM_ID = 10;
-    public static final String L_NAME = "Level",
-            S_NAME = "Slope",
-            C_NAME = "Cycle",
-            CLEN_NAME = "Cycle length",
-            CDUMP_NAME = "Cycle dumping factor",
-            N_NAME = "Noise",
-            SM_NAME = "Seasonal model";
-    public static final String L_DESC = "Level",
-            S_DESC = "Slope",
-            C_DESC = "Cycle",
-            CLEN_DESC = "Cycle length",
-            CDUMP_DESC = "Cycle dumping factor",
-            N_DESC = "Noise",
-            SM_DESC = "Seasonal model";
+    public static final int PARAM_ID = 1, FN_ID = 2, EPS_ID = 3, TRESHOLD_ID = 4;
+    public static final String PARAM_NAME = "Parametrization",
+            FN_NAME = "Function",
+            EPS_NAME = "Precision",
+            TRESHOLD_NAME = "Simplification threshold";
+    public static final String PARAM_DESC = "Parametrization",
+            FN_DESC = "Function",
+            EPS_DESC = "Precision",
+            TRESHOLD_DESC = "Simplification threshold";
 
     @Override
     public String getDisplayName() {
-        return "Basic structural model";
+        return Bundle.TdEstimationSpecUI_getDisplayName();
     }
 
     @Override

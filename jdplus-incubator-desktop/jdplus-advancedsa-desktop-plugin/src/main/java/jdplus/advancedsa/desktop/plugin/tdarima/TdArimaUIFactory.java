@@ -20,7 +20,7 @@ import java.awt.Color;
 import javax.swing.Icon;
 import jdplus.advancedsa.base.api.tdarima.TdModelSpec;
 import jdplus.advancedsa.base.core.tdarima.TdArimaDocument;
-import jdplus.advancedsa.desktop.plugin.tdarima.ui.TdArimaSpecUI;
+import jdplus.advancedsa.desktop.plugin.tdarima.ui.ModelSpecUI;
 import jdplus.toolkit.desktop.plugin.descriptors.IObjectDescriptor;
 import jdplus.toolkit.desktop.plugin.ui.processing.IProcDocumentView;
 import jdplus.toolkit.desktop.plugin.workspace.DocumentUIServices;
@@ -43,7 +43,7 @@ public class TdArimaUIFactory implements DocumentUIServices<TdModelSpec, TdArima
 
     @Override
     public IObjectDescriptor<TdModelSpec> getSpecificationDescriptor(TdModelSpec spec) {
-        return new TdArimaSpecUI(spec, false);
+        return new ModelSpecUI(spec, false);
     }
 
     @Override

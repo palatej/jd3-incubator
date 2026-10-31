@@ -26,9 +26,9 @@ import jdplus.toolkit.base.api.modelling.regular.TransformSpec;
  */
 public class TransformSpecUI extends AbstractTransformSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public TransformSpecUI(TdArimaSpecRoot root) {
+    public TransformSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

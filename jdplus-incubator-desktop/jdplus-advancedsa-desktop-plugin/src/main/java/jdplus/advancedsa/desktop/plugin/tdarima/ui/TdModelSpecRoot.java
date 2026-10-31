@@ -18,6 +18,7 @@ package jdplus.advancedsa.desktop.plugin.tdarima.ui;
 
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdModelSpec;
+import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.sa.base.api.benchmarking.SaBenchmarkingSpec;
 import jdplus.sa.desktop.plugin.descriptors.regular.RegularSpecUI;
 import jdplus.toolkit.base.api.modelling.regular.ModellingSpec;
@@ -27,9 +28,11 @@ import jdplus.toolkit.base.api.modelling.regular.ModellingSpec;
  * @author Jean Palate
  */
 @lombok.Getter
-public class TdArimaSpecRoot implements RegularSpecUI {
+public class TdModelSpecRoot implements RegularSpecUI {
 
     @lombok.NonNull private ModellingSpec preprocessing;
+
+    private boolean usingPreprocessing;
 
     @lombok.NonNull private TdEstimationSpec tdarima;
 
@@ -37,8 +40,9 @@ public class TdArimaSpecRoot implements RegularSpecUI {
 
     boolean ro;
 
-    public TdArimaSpecRoot(TdModelSpec spec, boolean ro) {
+    public TdModelSpecRoot(TdModelSpec spec, boolean ro) {
         this.preprocessing = spec.getPreprocessing();
+        this.usingPreprocessing = spec.isUsingPreprocessing();
         this.tdarima = spec.getTdarima();
         this.benchmarking = spec.getBenchmarking();
         this.ro = ro;
@@ -47,6 +51,7 @@ public class TdArimaSpecRoot implements RegularSpecUI {
     public TdModelSpec getCore() {
         return TdModelSpec.builder()
                 .preprocessing(preprocessing)
+                .usingPreprocessing(usingPreprocessing)
                 .tdarima(tdarima)
                 .benchmarking(benchmarking)
                 .build();
@@ -61,6 +66,15 @@ public class TdArimaSpecRoot implements RegularSpecUI {
         tdarima = spec;
     }
 
+    public void update(TdSarimaSpec spec) {
+        tdarima = tdarima.toBuilder().tdspec(spec).build();
+    }
+
+    public void setUsingPreprocessing(boolean p) {
+        this.usingPreprocessing = p;
+    }
+
+    @Override
     public ModellingSpec preprocessing() {
         return preprocessing;
     }

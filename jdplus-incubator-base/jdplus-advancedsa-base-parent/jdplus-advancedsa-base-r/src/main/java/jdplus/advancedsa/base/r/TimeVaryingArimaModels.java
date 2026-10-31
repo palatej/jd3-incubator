@@ -16,6 +16,7 @@
 package jdplus.advancedsa.base.r;
 
 import java.util.Locale;
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaModelSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
@@ -131,8 +132,10 @@ public class TimeVaryingArimaModels {
             Matrix X,
             int[] regular,
             int[] seasonal,
-            boolean far,
-            boolean fma,
+            boolean fphi,
+            boolean fbphi,
+            boolean ftheta,
+            boolean fbtheta,
             boolean fvar,
             String param,
             double eps,
@@ -141,8 +144,7 @@ public class TimeVaryingArimaModels {
         TdEstimationSpec.Parametrization pltd =
                 TdEstimationSpec.Parametrization.valueOf(param.toUpperCase(Locale.ROOT));
 
-        TdSarimaSpec.Orders sspec = TdSarimaSpec.Orders.builder()
-                .period(period)
+        Orders sspec = Orders.builder()
                 .p(regular[0])
                 .d(regular[1])
                 .q(regular[2])
@@ -150,17 +152,23 @@ public class TimeVaryingArimaModels {
                 .bd(period > 1 ? seasonal[1] : 0)
                 .bq(period > 1 ? seasonal[2] : 0)
                 .build();
+        TdSarimaSpec modelspec = TdSarimaSpec.builder()
+                .orders(sspec)
+                .vPhi(!fphi)
+                .vBphi(!fbphi)
+                .vTheta(!ftheta)
+                .vBtheta(!fbtheta)
+                .vVar(!fvar)
+                .build();
 
         TdEstimationSpec spec = TdEstimationSpec.builder()
                 .parametrization(pltd)
+                .tdspec(modelspec)
                 .precision(eps)
                 .simplificationThreshold(simplificationThreshold)
-                .tdAutoregressive(!far)
-                .tdMovingAverage(!fma)
-                .tdAutoregressive(!fvar)
                 .build();
         TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
-        return kernel.process(DoubleSeq.of(data), mean, FastMatrix.of(X), sspec);
+        return kernel.process(DoubleSeq.of(data), period, mean, FastMatrix.of(X));
     }
 
     //    public LtdSarimaResults estimate(double[] data, int period, Matrix X, int[] regular, int[] seasonal,
@@ -175,7 +183,7 @@ public class TimeVaryingArimaModels {
     //            dphi, dbphi, dtheta, dbtheta, dvar,
     //            fphi, fbphi, ftheta, fbtheta, fvar);
     //
-    //        TdDecompositionKernel kernel=TdDecompositionKernel.of(spec);
+    //        LtdKernel kernel=LtdKernel.of(spec);
     //        return null;
     //    }
     // use p and fphi or p and phi (dphi == null) or p and phi and dphi

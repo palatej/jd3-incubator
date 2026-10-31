@@ -26,9 +26,9 @@ import jdplus.toolkit.base.api.modelling.regular.SeriesSpec;
  */
 public class SeriesSpecUI extends AbstractSeriesSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public SeriesSpecUI(TdArimaSpecRoot root) {
+    public SeriesSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

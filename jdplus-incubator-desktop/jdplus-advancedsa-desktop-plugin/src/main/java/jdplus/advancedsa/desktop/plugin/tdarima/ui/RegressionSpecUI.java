@@ -27,9 +27,9 @@ import jdplus.toolkit.desktop.plugin.descriptors.IPropertyDescriptors;
  */
 public class RegressionSpecUI extends AbstractRegressionSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public RegressionSpecUI(TdArimaSpecRoot root) {
+    public RegressionSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

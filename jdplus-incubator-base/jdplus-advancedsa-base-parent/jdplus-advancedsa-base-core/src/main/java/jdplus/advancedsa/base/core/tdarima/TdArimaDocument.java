@@ -41,6 +41,6 @@ public class TdArimaDocument extends AbstractTsDocument<TdModelSpec, TdModelling
 
     @Override
     protected TdModellingResults internalProcess(TdModelSpec s, TsData tsdata) {
-        return TdKernel.of(s, context).process(tsdata, ProcessingLog.dummy());
+        return new TdKernel().process(tsdata, s, context, ProcessingLog.dummy());
     }
 }

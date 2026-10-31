@@ -14,9 +14,9 @@ import jdplus.toolkit.base.api.modelling.regular.MeanSpec;
  */
 public class MeanSpecUI extends AbstractMeanSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public MeanSpecUI(TdArimaSpecRoot root) {
+    public MeanSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

@@ -26,9 +26,9 @@ import jdplus.toolkit.base.api.modelling.regular.OutlierSpec;
  */
 public class OutlierSpecUI extends AbstractOutlierSpecUI {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
-    public OutlierSpecUI(TdArimaSpecRoot root) {
+    public OutlierSpecUI(TdModelSpecRoot root) {
         this.root = root;
     }
 

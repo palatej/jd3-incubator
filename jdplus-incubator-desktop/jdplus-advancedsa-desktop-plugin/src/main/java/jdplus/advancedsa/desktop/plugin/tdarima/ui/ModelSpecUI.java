@@ -29,17 +29,17 @@ import org.openide.util.NbBundle.Messages;
  *
  * @author Jean Palate
  */
-public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
+public class ModelSpecUI implements IObjectDescriptor<TdModelSpec> {
 
-    private final TdArimaSpecRoot root;
+    private final TdModelSpecRoot root;
 
     @Override
     public TdModelSpec getCore() {
         return root.getCore();
     }
 
-    public TdArimaSpecUI(TdModelSpec spec, boolean ro) {
-        root = new TdArimaSpecRoot(spec, ro);
+    public ModelSpecUI(TdModelSpec spec, boolean ro) {
+        root = new TdModelSpecRoot(spec, ro);
     }
 
     public SeriesSpecUI getSeries() {
@@ -64,6 +64,14 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
 
     public EstimateSpecUI getEstimate() {
         return new EstimateSpecUI(root);
+    }
+
+    public TdEstimationSpecUI getTdEstimation() {
+        return new TdEstimationSpecUI(root);
+    }
+
+    public TdSarimaSpecUI getTdModel() {
+        return new TdSarimaSpecUI(root);
     }
 
     @Override
@@ -94,7 +102,11 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
         if (desc != null) {
             descs.add(desc);
         }
-        desc = decompositionDesc();
+        desc = tdModelDesc();
+        if (desc != null) {
+            descs.add(desc);
+        }
+        desc = tdEstimationDesc();
         if (desc != null) {
             descs.add(desc);
         }
@@ -104,19 +116,19 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
     private static final int SERIES_ID = 1,
             TRANSFORM_ID = 2,
             REGRESSION_ID = 3,
-            STOCHASTIC_ID = 4,
             OUTLIER_ID = 5,
             ESTIMATE_ID = 7,
-            DECOMPOSITION_ID = 8;
+            TDSARIMA_DEF_ID = 8,
+            TDSARIMA_EST_ID = 9;
 
-    @Messages({"bsmPlusSpecUI.regressionDesc.name=REGRESSION", "bsmPlusSpecUI.regressionDesc.desc="})
+    @Messages({"TdModelSpecUI.regressionDesc.name=REGRESSION", "TdModelSpecUI.regressionDesc.desc="})
     private EnhancedPropertyDescriptor regressionDesc() {
         if (!root.isPreprocessing()) return null;
         try {
             PropertyDescriptor desc = new PropertyDescriptor("regression", this.getClass(), "getRegression", null);
             EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, REGRESSION_ID);
-            desc.setDisplayName(Bundle.bsmPlusSpecUI_regressionDesc_name());
-            desc.setShortDescription(Bundle.bsmPlusSpecUI_regressionDesc_desc());
+            desc.setDisplayName(Bundle.TdModelSpecUI_regressionDesc_name());
+            desc.setShortDescription(Bundle.TdModelSpecUI_regressionDesc_desc());
             // edesc.setReadOnly(true);
             return edesc;
         } catch (IntrospectionException ex) {
@@ -124,13 +136,13 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
         }
     }
 
-    @Messages({"bsmPlusSpecUI.seriesDesc.name=SERIES", "bsmPlusSpecUI.seriesDesc.desc="})
+    @Messages({"TdModelSpecUI.seriesDesc.name=SERIES", "TdModelSpecUI.seriesDesc.desc="})
     private EnhancedPropertyDescriptor seriesDesc() {
         try {
             PropertyDescriptor desc = new PropertyDescriptor("transform", this.getClass(), "getSeries", null);
             EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, SERIES_ID);
-            desc.setDisplayName(Bundle.bsmPlusSpecUI_seriesDesc_name());
-            desc.setShortDescription(Bundle.bsmPlusSpecUI_seriesDesc_desc());
+            desc.setDisplayName(Bundle.TdModelSpecUI_seriesDesc_name());
+            desc.setShortDescription(Bundle.TdModelSpecUI_seriesDesc_desc());
             // edesc.setReadOnly(true);
             return edesc;
         } catch (IntrospectionException ex) {
@@ -138,14 +150,14 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
         }
     }
 
-    @Messages({"bsmPlusSpecUI.transformDesc.name=TRANSFORM", "bsmPlusSpecUI.transformDesc.desc="})
+    @Messages({"TdModelSpecUI.transformDesc.name=TRANSFORM", "TdModelSpecUI.transformDesc.desc="})
     private EnhancedPropertyDescriptor transformDesc() {
         if (!root.isPreprocessing()) return null;
         try {
             PropertyDescriptor desc = new PropertyDescriptor("transform", this.getClass(), "getTransform", null);
             EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, TRANSFORM_ID);
-            desc.setDisplayName(Bundle.bsmPlusSpecUI_transformDesc_name());
-            desc.setShortDescription(Bundle.bsmPlusSpecUI_transformDesc_desc());
+            desc.setDisplayName(Bundle.TdModelSpecUI_transformDesc_name());
+            desc.setShortDescription(Bundle.TdModelSpecUI_transformDesc_desc());
             // edesc.setReadOnly(true);
             return edesc;
         } catch (IntrospectionException ex) {
@@ -153,14 +165,14 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
         }
     }
 
-    @Messages({"bsmPlusSpecUI.outlierDesc.name=OUTLIERS", "bsmPlusSpecUI.outlierDesc.desc="})
+    @Messages({"TdModelSpecUI.outlierDesc.name=OUTLIERS", "TdModelSpecUI.outlierDesc.desc="})
     private EnhancedPropertyDescriptor outlierDesc() {
         if (!root.isPreprocessing()) return null;
         try {
             PropertyDescriptor desc = new PropertyDescriptor("outlier", this.getClass(), "getOutlier", null);
             EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, OUTLIER_ID);
-            desc.setDisplayName(Bundle.bsmPlusSpecUI_outlierDesc_name());
-            desc.setShortDescription(Bundle.bsmPlusSpecUI_outlierDesc_desc());
+            desc.setDisplayName(Bundle.TdModelSpecUI_outlierDesc_name());
+            desc.setShortDescription(Bundle.TdModelSpecUI_outlierDesc_desc());
             // edesc.setReadOnly(true);
             return edesc;
         } catch (IntrospectionException ex) {
@@ -168,31 +180,14 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
         }
     }
 
-    //    @Messages({"bsmPlusSpecUI.stochasticDesc.name=MODEL",
-    //        "bsmPlusSpecUI.stochasticDesc.desc="
-    //    })
-    //    private EnhancedPropertyDescriptor stochasticDesc() {
-    //        try {
-    //            PropertyDescriptor desc = new PropertyDescriptor("stochastic", this.getClass(), "getStochastic",
-    // null);
-    //            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, STOCHASTIC_ID);
-    //            desc.setDisplayName(Bundle.bsmPlusSpecUI_stochasticDesc_name());
-    //            desc.setShortDescription(Bundle.bsmPlusSpecUI_stochasticDesc_desc());
-    //            //edesc.setReadOnly(true);
-    //            return edesc;
-    //        } catch (IntrospectionException ex) {
-    //            return null;
-    //        }
-    //    }
-    //
-    @Messages({"bsmPlusSpecUI.estimateDesc.name=ESTIMATE", "bsmPlusSpecUI.estimateDesc.desc="})
+    @Messages({"TdModelSpecUI.estimateDesc.name=ESTIMATE", "TdModelSpecUI.estimateDesc.desc="})
     private EnhancedPropertyDescriptor estimateDesc() {
         if (!root.isPreprocessing()) return null;
         try {
             PropertyDescriptor desc = new PropertyDescriptor("estimate", this.getClass(), "getEstimate", null);
             EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, ESTIMATE_ID);
-            desc.setDisplayName(Bundle.bsmPlusSpecUI_estimateDesc_name());
-            desc.setShortDescription(Bundle.bsmPlusSpecUI_estimateDesc_desc());
+            desc.setDisplayName(Bundle.TdModelSpecUI_estimateDesc_name());
+            desc.setShortDescription(Bundle.TdModelSpecUI_estimateDesc_desc());
             // edesc.setReadOnly(true);
             return edesc;
         } catch (IntrospectionException ex) {
@@ -200,26 +195,43 @@ public class TdArimaSpecUI implements IObjectDescriptor<TdModelSpec> {
         }
     }
 
-    @Messages("bsmPlusSpecUI.getDisplayName=BSM")
+    @Messages("TdEstimationSpecUI.getDisplayName=TDSarima estimation")
     @Override
     public String getDisplayName() {
-        return Bundle.bsmPlusSpecUI_getDisplayName();
+        return Bundle.TdEstimationSpecUI_getDisplayName();
     }
 
-    public TdEstimationSpecUI getDecomposition() {
+    public TdEstimationSpecUI getTModel() {
         return new TdEstimationSpecUI(root);
     }
 
     @Messages({
-        "bsmPlusSpecUI.decompositionDesc.name=BSM",
-        "bsmPlusSpecUI.decompositionDesc.desc=Includes the settings relevant to the BSM model"
+        "ModelSpecUI.tdModel.name=TD Sarima",
+        "ModelSpecUI.tdModel.desc=Includes the settings relevant to the definition of the TD Sarima model"
     })
-    private EnhancedPropertyDescriptor decompositionDesc() {
+    private EnhancedPropertyDescriptor tdModelDesc() {
         try {
-            PropertyDescriptor desc = new PropertyDescriptor("Model", this.getClass(), "getDecomposition", null);
-            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, DECOMPOSITION_ID);
-            desc.setDisplayName(Bundle.bsmPlusSpecUI_decompositionDesc_name());
-            desc.setShortDescription(Bundle.bsmPlusSpecUI_decompositionDesc_desc());
+            PropertyDescriptor desc =
+                    new PropertyDescriptor("TDSarima Estimation", this.getClass(), "getTdModel", null);
+            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, TDSARIMA_DEF_ID);
+            desc.setDisplayName(Bundle.ModelSpecUI_tdModel_name());
+            desc.setShortDescription(Bundle.ModelSpecUI_tdModel_desc());
+            return edesc;
+        } catch (IntrospectionException ex) {
+            return null;
+        }
+    }
+
+    @Messages({
+        "ModelSpecUI.tdEstimation.name=TD Sarima",
+        "ModelSpecUI.tdEstimation.desc=Includes the settings relevant to the estimation of the TD Sarima model"
+    })
+    private EnhancedPropertyDescriptor tdEstimationDesc() {
+        try {
+            PropertyDescriptor desc = new PropertyDescriptor("TDSarima", this.getClass(), "getTdEstimation", null);
+            EnhancedPropertyDescriptor edesc = new EnhancedPropertyDescriptor(desc, TDSARIMA_EST_ID);
+            desc.setDisplayName(Bundle.ModelSpecUI_tdEstimation_name());
+            desc.setShortDescription(Bundle.ModelSpecUI_tdEstimation_desc());
             return edesc;
         } catch (IntrospectionException ex) {
             return null;
