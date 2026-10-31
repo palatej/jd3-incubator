@@ -16,6 +16,7 @@
 package jdplus.advancedsa.base.core.tdarima;
 
 import java.util.Map;
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.timeseries.TsData;
@@ -32,7 +33,7 @@ public class TdDecompositionKernelTest {
     @Test
     public void testDetails() {
 
-        TdSarimaSpec.Orders arima = TdSarimaSpec.Orders.airline(0);
+        Orders arima = Orders.airline();
         TdSarimaSpec modelspec = TdSarimaSpec.builder()
                 .orders(arima)
                 .vTheta(true)
@@ -62,19 +63,24 @@ public class TdDecompositionKernelTest {
     public void testAirline() {
         TsData[] s = Data.retail_us();
 
+        TdSarimaSpec tspec = TdSarimaSpec.builder()
+                .vTheta(true)
+                .vBtheta(true)
+                .vVar(true)
+                .orders(Orders.airline())
+                .build();
+
         TdEstimationSpec spec = TdEstimationSpec.builder()
                 .parametrization(TdEstimationSpec.Parametrization.START_END)
                 .simplificationThreshold(0.05)
-                .tdMovingAverage(true)
-                .tdInnovation(true)
+                .tdspec(tspec)
                 .build();
-
-        TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
 
         long t0 = System.currentTimeMillis();
         for (int i = 0; i < s.length; ++i) {
-            TdResults result = kernel.process(
-                    s[i].getValues(), false, null, TdSarimaSpec.Orders.airline(s[i].getAnnualFrequency()));
+            spec = spec.withTdspec(tspec);
+            TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
+            TdResults result = kernel.process(s[i].getValues(), s[i].getAnnualFrequency(), false, null);
             if (result.isTimeVarying()) {
                 result.getData("final.regression.effect", double[].class);
             }
@@ -112,23 +118,26 @@ public class TdDecompositionKernelTest {
     @Test
     public void test311011() {
         TsData[] s = Data.retail_us();
-        TdSarimaSpec.Orders airline = TdSarimaSpec.Orders.airline(0);
-        TdSarimaSpec.Orders aspec = airline.toBuilder().p(3).build();
+        Orders airline = Orders.airline();
+        Orders aspec = airline.toBuilder().p(3).build();
+        TdSarimaSpec tspec = TdSarimaSpec.builder()
+                .vTheta(true)
+                .vBtheta(true)
+                .vPhi(true)
+                .orders(aspec)
+                .build();
 
         TdEstimationSpec spec = TdEstimationSpec.builder()
                 .parametrization(TdEstimationSpec.Parametrization.MEAN_DELTA)
                 .simplificationThreshold(0)
-                .tdMovingAverage(true)
-                .tdAutoregressive(true)
-                .tdInnovation(false)
+                .tdspec(tspec)
                 .build();
-
-        TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
 
         long t0 = System.currentTimeMillis();
         for (int i = 0; i < s.length; ++i) {
-            TdResults result =
-                    kernel.process(s[i].getValues(), false, null, aspec.withPeriod(s[i].getAnnualFrequency()));
+            spec = spec.withTdspec(tspec);
+            TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
+            TdResults result = kernel.process(s[i].getValues(), s[i].getAnnualFrequency(), false, null);
             //
             // System.out.print(result.initialResults().getLikelihood().getLogLikelihood());
             //            System.out.print('\t');
@@ -161,17 +170,20 @@ public class TdDecompositionKernelTest {
 
     public static void main(String[] args) {
         TsData s = Data.TS_PROD;
-        TdSarimaSpec.Orders airline = TdSarimaSpec.Orders.airline(s.getAnnualFrequency());
-
+        Orders airline = Orders.airline();
+        TdSarimaSpec tspec = TdSarimaSpec.builder()
+                .orders(airline)
+                .vTheta(true)
+                .vBtheta(true)
+                .build();
         TdEstimationSpec spec = TdEstimationSpec.builder()
                 .parametrization(TdEstimationSpec.Parametrization.MEAN_DELTA)
-                .tdMovingAverage(true)
-                .tdInnovation(false)
+                .tdspec(tspec)
                 .build();
 
         TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
 
-        TdResults result = kernel.process(s.getValues(), false, null, airline);
+        TdResults result = kernel.process(s.getValues(), s.getAnnualFrequency(), false, null);
         Map<String, Class> dic = result.getDictionary();
         for (String e : dic.keySet()) {
             System.out.println(e);

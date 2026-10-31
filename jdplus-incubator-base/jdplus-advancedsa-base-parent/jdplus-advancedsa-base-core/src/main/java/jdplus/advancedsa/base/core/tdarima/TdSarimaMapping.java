@@ -15,6 +15,7 @@
  */
 package jdplus.advancedsa.base.core.tdarima;
 
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.data.DoubleSeq;
@@ -30,7 +31,7 @@ public interface TdSarimaMapping extends IParametricMapping<TdSarimaModel> {
 
     public int getN();
 
-    public TdSarimaSpec.Orders getOrders();
+    public Orders getOrders();
 
     static final double MAX = 0.99999;
     public static final double STEP = Math.pow(2.220446e-16, 0.5), EVAR = 1e-6;
@@ -159,7 +160,7 @@ public interface TdSarimaMapping extends IParametricMapping<TdSarimaModel> {
             di = 0;
             k0 = 0;
             k1 = n0;
-            TdSarimaSpec.Orders orders = spec.getOrders();
+            Orders orders = spec.getOrders();
             int o = orders.getP();
             if (o > 0) {
                 fillNames(parametrization, spec.isVPhi(), PHI, o);

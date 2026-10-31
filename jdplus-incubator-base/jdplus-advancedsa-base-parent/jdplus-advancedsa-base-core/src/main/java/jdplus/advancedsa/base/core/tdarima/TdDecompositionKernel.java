@@ -19,6 +19,7 @@ import static jdplus.toolkit.base.core.math.matrices.SymmetricMatrix.LtL;
 import static jdplus.toolkit.base.core.math.matrices.SymmetricMatrix.lcholesky;
 
 import java.util.function.Function;
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.arima.SarimaOrders;
@@ -77,30 +78,21 @@ public class TdDecompositionKernel {
      * Raw estimation
      *
      * @param s variable
+     * @param period
      * @param mean
      * @param X regression matrix. Can be null
-     * @param orders
      * @return
      */
-    public TdResults process(DoubleSeq s, boolean mean, @Nullable FastMatrix X, TdSarimaSpec.Orders orders) {
+    public TdResults process(DoubleSeq s, int period, boolean mean, @Nullable FastMatrix X) {
         //        clear();
         TdResults.Builder builder = TdResults.builder();
 
-        TdSarimaSpec modelSpec = TdSarimaSpec.builder()
-                .orders(orders)
-                .vPhi(spec.isTdAutoregressive())
-                .vBphi(spec.isTdAutoregressive())
-                .vTheta(spec.isTdMovingAverage())
-                .vBtheta(spec.isTdMovingAverage())
-                .vVar(spec.isTdInnovation())
-                .build();
-
-        SarimaResults initialModel = initialModel(s, mean, X, modelSpec);
+        SarimaResults initialModel = initialModel(s, period, mean, X);
         builder.start(initialModel);
         double t = spec.getSimplificationThreshold();
-        TdSarimaSpec curSpec = modelSpec;
+        TdSarimaSpec curSpec = spec.getTdspec();
         do {
-            TdSarimaResults step = step(curSpec, initialModel);
+            TdSarimaResults step = step(period, curSpec, initialModel);
             if (step == null) {
                 builder.isTimeVarying(false);
                 break;
@@ -125,8 +117,8 @@ public class TdDecompositionKernel {
     //        curDeltaCov=null;
     //    }
     //
-    private SarimaResults initialModel(DoubleSeq s, boolean mean, @Nullable FastMatrix X, TdSarimaSpec modelSpec) {
-        SarimaOrders orders = modelSpec.getOrders().asSarimaOrders();
+    private SarimaResults initialModel(DoubleSeq s, int period, boolean mean, @Nullable FastMatrix X) {
+        SarimaOrders orders = spec.getTdspec().getOrders().asSarimaOrders(period);
 
         RegArimaModel<SarimaModel> regarima = RegArimaModel.<SarimaModel>builder()
                 .y(s)
@@ -168,7 +160,7 @@ public class TdDecompositionKernel {
         return builder.build();
     }
 
-    private TdSarimaResults step(TdSarimaSpec curSpec, SarimaResults initialModel) {
+    private TdSarimaResults step(int period, TdSarimaSpec curSpec, SarimaResults initialModel) {
         if (!curSpec.isTimeVarying()) {
             return null;
         }
@@ -179,7 +171,7 @@ public class TdDecompositionKernel {
 
         TdSarimaResults.Builder builder = TdSarimaResults.builder();
 
-        TdSarimaMapping ltdmapping = stmapping(curSpec, n);
+        TdSarimaMapping ltdmapping = stmapping(period, curSpec, n);
         SsfFunction<TdSarimaModel, Ssf> fn = SsfFunction.<TdSarimaModel, Ssf>builder(
                         new SsfData(dmodel.getY()), ltdmapping, lmodel -> lmodel.ssf())
                 .regression(dmodel.getX().isEmpty() ? null : dmodel.getX(), 0)
@@ -190,8 +182,8 @@ public class TdDecompositionKernel {
                 .build();
         int dim = ltdmapping.getDim();
 
-        TdSarimaModel m0 = TdSarimaModel.of(
-                TdSarimaSpec.Orders.of(storders), dmodel.getArma().parameters(), n);
+        TdSarimaModel m0 =
+                TdSarimaModel.of(period, Orders.of(storders), dmodel.getArma().parameters(), n);
         DoubleSeq p = ltdmapping.parametersOf(m0);
         SsfFunctionPoint<TdSarimaModel, Ssf> pt = fn.evaluate(p);
         LevenbergMarquardtMinimizer min = LevenbergMarquardtMinimizer.builder()
@@ -316,12 +308,12 @@ public class TdDecompositionKernel {
 
     private LogLikelihoodFunction<TdSarimaModel, DiffuseConcentratedLikelihood> concentratedLogLikelihoodFunction(
             RegArmaModel<SarimaModel> dmodel, TdSarimaSpec curSpec) {
+        int n = dmodel.getY().length();
+        int period = dmodel.getArma().getPeriod();
+        TdSarimaMapping stdmapping = stmapping(period, curSpec, n);
         Function<TdSarimaModel, ConcentratedLikelihood> lfn = m -> {
-            int n = dmodel.getY().length();
-
-            TdSarimaMapping ltdmapping = stmapping(curSpec, n);
             SsfFunction<TdSarimaModel, Ssf> fn = SsfFunction.<TdSarimaModel, Ssf>builder(
-                            new SsfData(dmodel.getY()), ltdmapping, lmodel -> lmodel.ssf())
+                            new SsfData(dmodel.getY()), stdmapping, lmodel -> lmodel.ssf())
                     .regression(dmodel.getX().isEmpty() ? null : dmodel.getX(), 0)
                     .useScalingFactor(true)
                     .useLog(true)
@@ -329,30 +321,31 @@ public class TdDecompositionKernel {
                     .useFastAlgorithm(false)
                     .useSymmetricNumericalDerivatives(true)
                     .build();
-            DoubleSeq p = ltdmapping.parametersOf(m);
+            DoubleSeq p = stdmapping.parametersOf(m);
             SsfFunctionPoint pt = fn.evaluate(p);
             return pt.getLikelihood();
         };
 
-        TdSarimaMapping ltdmapping = mapping(curSpec, dmodel.getY().length());
+        TdSarimaMapping tdmapping = mapping(period, curSpec, dmodel.getY().length());
 
-        return new LogLikelihoodFunction(ltdmapping, lfn);
+        return new LogLikelihoodFunction(tdmapping, lfn);
     }
 
-    private TdSarimaMapping stmapping(TdSarimaSpec curspec, int n) {
-        TdSarimaSpec.Orders orders = curspec.getOrders().doStationary();
-        return mapping(curspec.withOrders(orders), n, spec.getParametrization());
+    private TdSarimaMapping stmapping(int period, TdSarimaSpec curspec, int n) {
+        Orders orders = curspec.getOrders().doStationary();
+        return mapping(period, curspec.withOrders(orders), n, spec.getParametrization());
     }
 
-    private TdSarimaMapping mapping(TdSarimaSpec curspec, int n) {
-        return mapping(curspec, n, spec.getParametrization());
+    private TdSarimaMapping mapping(int period, TdSarimaSpec curspec, int n) {
+        return mapping(period, curspec, n, spec.getParametrization());
     }
 
-    private TdSarimaMapping mapping(TdSarimaSpec curspec, int n, TdEstimationSpec.Parametrization parametrization) {
+    private TdSarimaMapping mapping(
+            int period, TdSarimaSpec curspec, int n, TdEstimationSpec.Parametrization parametrization) {
         TdSarimaMapping ltdmapping = null;
-        TdSarimaSpec.Orders orders = curspec.getOrders();
+        Orders orders = curspec.getOrders();
         if (parametrization == TdEstimationSpec.Parametrization.MEAN_DELTA) {
-            ltdmapping = TdSarimaMapping1.builder(orders)
+            ltdmapping = TdSarimaMapping1.builder(period, orders)
                     .n(n)
                     .vPhi(curspec.isVPhi())
                     .vBphi(curspec.isVBphi())
@@ -361,7 +354,7 @@ public class TdDecompositionKernel {
                     .vVar(curspec.isVVar())
                     .build();
         } else if (parametrization == TdEstimationSpec.Parametrization.START_END) {
-            ltdmapping = TdSarimaMapping2.builder(orders)
+            ltdmapping = TdSarimaMapping2.builder(period, orders)
                     .n(n)
                     .vPhi(curspec.isVPhi())
                     .vBphi(curspec.isVBphi())
@@ -443,7 +436,7 @@ public class TdDecompositionKernel {
             TdSarimaSpec modelSpec, DoubleSeq parameters, Matrix parametersCovariance, int df, boolean derived) {
         int imax = -1;
         double pmax = 0;
-        TdSarimaSpec.Orders orders = modelSpec.getOrders();
+        Orders orders = modelSpec.getOrders();
         FastMatrix pcov = FastMatrix.of(parametersCovariance);
         int n = 0;
         int p = orders.getP();

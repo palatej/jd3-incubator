@@ -32,7 +32,13 @@ public class TdModelSpec implements SaSpecification {
     public static final String VERSION_V3 = "1.0.0";
     public static final AlgorithmDescriptor DESCRIPTOR = new AlgorithmDescriptor(FAMILY, METHOD, VERSION_V3);
 
+    @lombok.EqualsAndHashCode.Exclude
+    private int frequency;
+
     @lombok.NonNull private ModellingSpec preprocessing;
+
+    @lombok.With
+    private boolean usePreprocessing;
 
     @lombok.NonNull private TdEstimationSpec tdarima;
 
@@ -41,6 +47,7 @@ public class TdModelSpec implements SaSpecification {
     public static Builder builder() {
         return new Builder()
                 .preprocessing(ModellingSpec.DEFAULT)
+                .usePreprocessing(true)
                 .tdarima(TdEstimationSpec.DEFAULT)
                 .benchmarking(SaBenchmarkingSpec.DEFAULT_DISABLED);
     }
@@ -52,6 +59,7 @@ public class TdModelSpec implements SaSpecification {
 
     public static final TdModelSpec FULL = new Builder()
             .preprocessing(ModellingSpec.FULL)
+            .usePreprocessing(true)
             .tdarima(TdEstimationSpec.FULL)
             .benchmarking(SaBenchmarkingSpec.DEFAULT_DISABLED)
             .build();
@@ -60,14 +68,14 @@ public class TdModelSpec implements SaSpecification {
 
     @Override
     public int getFrequency() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return frequency;
     }
 
     @Override
     public SaSpecification setFrequency(int freq) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (freq == frequency) return this;
+        ModellingSpec npreprocessing = preprocessing.setFrequency(freq);
+        return toBuilder().frequency(freq).preprocessing(npreprocessing).build();
     }
 
     @Override

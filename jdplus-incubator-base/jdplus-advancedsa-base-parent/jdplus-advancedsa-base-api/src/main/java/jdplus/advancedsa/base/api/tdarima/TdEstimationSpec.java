@@ -23,6 +23,10 @@ package jdplus.advancedsa.base.api.tdarima;
 @lombok.Value
 public class TdEstimationSpec {
 
+    public TdEstimationSpec withOrders(Orders orders) {
+        return toBuilder().tdspec(tdspec.withOrders(orders)).build();
+    }
+
     public static enum Parametrization {
         START_END,
         MEAN_DELTA;
@@ -41,14 +45,8 @@ public class TdEstimationSpec {
 
     public static final Transformation DEF_FN = Transformation.LINEAR;
 
-    @lombok.With
-    private boolean tdMovingAverage;
-
-    @lombok.With
-    private boolean tdAutoregressive;
-
-    @lombok.With
-    private boolean tdInnovation;
+    @lombok.NonNull @lombok.With
+    private TdSarimaSpec tdspec;
 
     @lombok.With
     private double precision;
@@ -64,21 +62,15 @@ public class TdEstimationSpec {
 
     public static Builder builder() {
         return new Builder()
+                .tdspec(TdSarimaSpec.DEFAULT)
                 .precision(DEF_PRECISION)
                 .simplificationThreshold(DEF_SIMPLIFICATION)
                 .parametrization(DEF_PARAMETRIZATION)
                 .transformation(DEF_FN);
     }
 
-    public static TdEstimationSpec DEFAULT = builder()
-            .tdAutoregressive(false)
-            .tdMovingAverage(true)
-            .tdInnovation(false)
-            .build();
+    public static TdEstimationSpec DEFAULT =
+            builder().tdspec(TdSarimaSpec.DEFAULT).build();
 
-    public static TdEstimationSpec FULL = builder()
-            .tdAutoregressive(true)
-            .tdMovingAverage(true)
-            .tdInnovation(true)
-            .build();
+    public static TdEstimationSpec FULL = builder().build();
 }

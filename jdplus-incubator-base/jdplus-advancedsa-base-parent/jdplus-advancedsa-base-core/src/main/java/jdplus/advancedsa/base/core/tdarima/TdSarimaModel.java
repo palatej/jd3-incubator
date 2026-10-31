@@ -15,6 +15,7 @@
  */
 package jdplus.advancedsa.base.core.tdarima;
 
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.data.DoubleSeq;
@@ -31,7 +32,8 @@ import jdplus.toolkit.base.core.ssf.univariate.Ssf;
 @lombok.Builder(toBuilder = true, builderClassName = "Builder")
 public class TdSarimaModel {
 
-    private final TdSarimaSpec.Orders spec;
+    private int period;
+    private final Orders spec;
     private final TdEstimationSpec.Transformation fn;
     private final DoubleSeq p0, p1;
     private final double var0, var1;
@@ -41,8 +43,8 @@ public class TdSarimaModel {
         return new Builder().var0(1).var1(1).fn(TdEstimationSpec.Transformation.LINEAR);
     }
 
-    public static TdSarimaModel of(TdSarimaSpec.Orders spec, DoubleSeq p, int n) {
-        return new TdSarimaModel(spec, TdEstimationSpec.Transformation.LINEAR, p, p, 1, 1, n);
+    public static TdSarimaModel of(int period, Orders spec, DoubleSeq p, int n) {
+        return new TdSarimaModel(period, spec, TdEstimationSpec.Transformation.LINEAR, p, p, 1, 1, n);
     }
 
     public Ssf ssf() {
@@ -53,8 +55,9 @@ public class TdSarimaModel {
             return TdSsfArima.ssf(n, i -> {
                 DataBlock q = DataBlock.of(p0);
                 q.addAY(i * r, delta);
-                SarimaModel sarima =
-                        SarimaModel.builder(spec.asSarimaOrders()).parameters(q).build();
+                SarimaModel sarima = SarimaModel.builder(spec.asSarimaOrders(period))
+                        .parameters(q)
+                        .build();
                 double e0 = var0 == 1 ? 1 : Math.sqrt(var0), e1 = var1 == 1 ? 1 : Math.sqrt(var1);
                 double et = e0 + (i * r) * (e1 - e0);
                 return new ArimaModel(sarima.getStationaryAr(), sarima.getNonStationaryAr(), sarima.getMa(), et * et);
@@ -65,8 +68,9 @@ public class TdSarimaModel {
                 DataBlock q = DataBlock.of(p0);
                 q.addAY(3 * x2, delta);
                 q.addAY(-2 * x3, delta);
-                SarimaModel sarima =
-                        SarimaModel.builder(spec.asSarimaOrders()).parameters(q).build();
+                SarimaModel sarima = SarimaModel.builder(spec.asSarimaOrders(period))
+                        .parameters(q)
+                        .build();
                 double e0 = var0 == 1 ? 1 : Math.sqrt(var0), e1 = var1 == 1 ? 1 : Math.sqrt(var1);
                 double et = e0 + (i * r) * (e1 - e0);
                 return new ArimaModel(sarima.getStationaryAr(), sarima.getNonStationaryAr(), sarima.getMa(), et * et);
@@ -84,7 +88,7 @@ public class TdSarimaModel {
         return !p0.hasSameContentAs(p1);
     }
 
-    public TdSarimaSpec.Orders getStationaryOrders() {
+    public Orders getStationaryOrders() {
         return spec.doStationary();
     }
 

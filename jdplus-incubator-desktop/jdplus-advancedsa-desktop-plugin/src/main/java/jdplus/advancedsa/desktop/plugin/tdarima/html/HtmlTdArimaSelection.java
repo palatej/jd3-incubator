@@ -65,7 +65,7 @@ public class HtmlTdArimaSelection extends AbstractHtmlElement {
         writeArima(stream, start);
         stream.write(HtmlTag.LINEBREAK);
         if (!results.isTimeVarying()) {
-            stream.write("No time dependent effect detected");
+            stream.write("No significant time dependent effect detected");
             return;
         }
         stream.write(HtmlTag.HEADER1, "Final model");

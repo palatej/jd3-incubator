@@ -15,8 +15,8 @@
  */
 package jdplus.advancedsa.base.core.tdarima;
 
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
-import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.core.data.DataBlock;
 import jdplus.toolkit.base.core.math.functions.levmar.LevenbergMarquardtMinimizer;
@@ -44,9 +44,9 @@ public class TdArimaModelTest {
         double[] s = Data.IND_PCR;
         DoubleSeq S = DataBlock.of(s).log();
 
-        TdSarimaSpec.Orders orders = TdSarimaSpec.Orders.airline(12);
+        Orders orders = Orders.airline();
         //        orders.setP(3);
-        TdSarimaMapping mapping = TdSarimaMapping1.builder(orders)
+        TdSarimaMapping mapping = TdSarimaMapping1.builder(12, orders)
                 .n(s.length)
                 .fn(TdEstimationSpec.Transformation.CUBIC)
                 //                .vPhi(true)

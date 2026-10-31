@@ -15,9 +15,6 @@
  */
 package jdplus.advancedsa.base.api.tdarima;
 
-import jdplus.toolkit.base.api.arima.SarimaOrders;
-import jdplus.toolkit.base.api.arima.SarmaOrders;
-
 /**
  *
  * @author Jean Palate
@@ -26,56 +23,23 @@ import jdplus.toolkit.base.api.arima.SarmaOrders;
 @lombok.Value
 public class TdSarimaSpec {
 
-    @lombok.Value
-    @lombok.Builder(toBuilder = true, builderClassName = "Builder")
-    public static class Orders {
+    public static final TdSarimaSpec DEFAULT = new Builder()
+            .orders(Orders.airline())
+            .vPhi(false)
+            .vBphi(false)
+            .vTheta(true)
+            .vBtheta(true)
+            .vVar(false)
+            .build();
 
-        @lombok.With
-        int period;
-
-        int p, d, q, bp, bd, bq;
-
-        public static Orders of(SarmaOrders spec) {
-            return builder()
-                    .period(spec.getPeriod())
-                    .p(spec.getP())
-                    .q(spec.getQ())
-                    .bp(spec.getBp())
-                    .bq(spec.getBq())
-                    .build();
-        }
-
-        public static Orders of(SarimaOrders spec) {
-            return builder()
-                    .period(spec.getPeriod())
-                    .p(spec.getP())
-                    .d(spec.getD())
-                    .q(spec.getQ())
-                    .bp(spec.getBp())
-                    .bd(spec.getBd())
-                    .bq(spec.getBq())
-                    .build();
-        }
-
-        public static Orders airline(int period) {
-            return builder().period(period).d(1).q(1).bd(1).bq(1).build();
-        }
-
-        public SarimaOrders asSarimaOrders() {
-            SarimaOrders orders = new SarimaOrders(period);
-            orders.setRegular(p, d, q);
-            orders.setSeasonal(bp, bd, bq);
-            return orders;
-        }
-
-        public int getParametersCount() {
-            return p + q + bp + bq;
-        }
-
-        public Orders doStationary() {
-            return toBuilder().d(0).bd(0).build();
-        }
-    }
+    public static final TdSarimaSpec FULL = new Builder()
+            .orders(Orders.airline())
+            .vPhi(true)
+            .vBphi(true)
+            .vTheta(true)
+            .vBtheta(true)
+            .vVar(true)
+            .build();
 
     public boolean isTimeVarying() {
         return (orders.getP() > 0 && vPhi)
@@ -89,10 +53,6 @@ public class TdSarimaSpec {
     private final Orders orders;
 
     private final boolean vPhi, vBphi, vTheta, vBtheta, vVar;
-
-    public TdSarimaSpec withPeriod(int p) {
-        return withOrders(orders.withPeriod(p));
-    }
 
     public int parametersCount() {
         int n = 0;

@@ -16,8 +16,8 @@
 package jdplus.advancedsa.base.core.tdarima;
 
 import java.util.function.IntToDoubleFunction;
+import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
-import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.core.data.DataBlock;
 import jdplus.toolkit.base.core.math.functions.ParamValidation;
@@ -36,8 +36,10 @@ public class TdSarimaMapping1 implements TdSarimaMapping {
 
     private final int n;
 
+    private final int period;
+
     @lombok.With
-    private final TdSarimaSpec.Orders orders;
+    private final Orders orders;
 
     private final boolean vPhi, vBphi, vTheta, vBtheta, vVar;
     private final double eps, epsVar;
@@ -45,9 +47,10 @@ public class TdSarimaMapping1 implements TdSarimaMapping {
 
     //    static final double MAX = 0.99999;
     //    public static final double STEP = Math.pow(2.220446e-16, 0.5), EVAR = 1e-6;
-    public static Builder builder(TdSarimaSpec.Orders orders) {
+    public static Builder builder(int period, Orders orders) {
         Builder builder = new Builder();
-        builder.orders(orders)
+        builder.period(period)
+                .orders(orders)
                 .vPhi(false)
                 .vBphi(false)
                 .vTheta(false)
@@ -93,7 +96,7 @@ public class TdSarimaMapping1 implements TdSarimaMapping {
 
     @Override
     public DoubleSeq getDefaultParameters() {
-        SarimaMapping mapping = new SarimaMapping(orders.asSarimaOrders(), eps, true);
+        SarimaMapping mapping = new SarimaMapping(orders.asSarimaOrders(period), eps, true);
         DoubleSeq p0 = mapping.getDefaultParameters();
         int ns = deltaParamsCount();
         if (ns == 0 && !vVar) {
@@ -113,7 +116,7 @@ public class TdSarimaMapping1 implements TdSarimaMapping {
 
     @Override
     public boolean checkBoundaries(DoubleSeq inParams) {
-        SarimaMapping mapping = new SarimaMapping(orders.asSarimaOrders(), eps, false);
+        SarimaMapping mapping = new SarimaMapping(orders.asSarimaOrders(period), eps, false);
         int np = orders.getParametersCount();
         double[] p = pmodels(inParams);
         if (!mapping.checkBoundaries(DoubleSeq.of(p, 0, np))) {
@@ -124,7 +127,7 @@ public class TdSarimaMapping1 implements TdSarimaMapping {
 
     @Override
     public ParamValidation validate(DataBlock ioParams) {
-        SarimaMapping mapping = new SarimaMapping(orders.asSarimaOrders(), eps, true);
+        SarimaMapping mapping = new SarimaMapping(orders.asSarimaOrders(period), eps, true);
         int np = orders.getParametersCount();
         // step 1: we validate the mean
         ParamValidation v0 = mapping.validate(ioParams.range(0, np));
