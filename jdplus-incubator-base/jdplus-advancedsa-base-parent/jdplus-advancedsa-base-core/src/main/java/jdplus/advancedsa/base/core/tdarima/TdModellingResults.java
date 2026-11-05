@@ -15,6 +15,7 @@
  */
 package jdplus.advancedsa.base.core.tdarima;
 
+import jdplus.sa.base.api.SeriesDecomposition;
 import jdplus.toolkit.base.api.information.GenericExplorable;
 import jdplus.toolkit.base.api.processing.ProcessingLog;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
@@ -29,6 +30,10 @@ public class TdModellingResults implements GenericExplorable {
     RegSarimaModel preprocessing;
 
     TdResults tdarima;
+
+    TdDecompositionResults decomposition;
+
+    SeriesDecomposition finals;
 
     ProcessingLog log;
 }

@@ -16,7 +16,7 @@
  */
 package jdplus.sts.desktop.plugin.bsm.ui.actions;
 
-import jdplus.advancedsa.desktop.plugin.tdarima.TdArimaDocumentManager;
+import jdplus.sts.desktop.plugin.bsm.StsDocumentManager;
 import jdplus.toolkit.desktop.plugin.workspace.nodes.CommentAction;
 import jdplus.toolkit.desktop.plugin.workspace.nodes.DeleteAction;
 import jdplus.toolkit.desktop.plugin.workspace.nodes.NewAction;
@@ -29,25 +29,25 @@ import org.openide.awt.ActionReferences;
 public class Actions {
 
     @ActionID(category = "Edit", id = RenameAction.ID)
-    @ActionReferences({@ActionReference(path = TdArimaDocumentManager.ITEMPATH, position = 1050)})
+    @ActionReferences({@ActionReference(path = StsDocumentManager.ITEMPATH, position = 1050)})
     public static RenameAction renameAction() {
         return new RenameAction();
     }
 
     @ActionID(category = "Edit", id = CommentAction.ID)
-    @ActionReferences({@ActionReference(path = TdArimaDocumentManager.ITEMPATH, position = 1150)})
+    @ActionReferences({@ActionReference(path = StsDocumentManager.ITEMPATH, position = 1150)})
     public static CommentAction commentAction() {
         return new CommentAction();
     }
 
     @ActionID(category = "Edit", id = DeleteAction.ID)
-    @ActionReferences({@ActionReference(path = TdArimaDocumentManager.ITEMPATH, position = 1100)})
+    @ActionReferences({@ActionReference(path = StsDocumentManager.ITEMPATH, position = 1100)})
     public static DeleteAction deleteAction() {
         return new DeleteAction();
     }
 
     @ActionID(category = "Edit", id = NewAction.ID)
-    @ActionReferences({@ActionReference(path = TdArimaDocumentManager.PATH, position = 1000)})
+    @ActionReferences({@ActionReference(path = StsDocumentManager.PATH, position = 1000)})
     public static NewAction newAction() {
         return new NewAction();
     }

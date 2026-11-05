@@ -19,6 +19,7 @@ import java.util.Map;
 import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
+import jdplus.toolkit.base.api.processing.ProcessingLog;
 import jdplus.toolkit.base.api.timeseries.TsData;
 import org.junit.jupiter.api.Test;
 import tck.demetra.data.Data;
@@ -79,8 +80,9 @@ public class TdDecompositionKernelTest {
         long t0 = System.currentTimeMillis();
         for (int i = 0; i < s.length; ++i) {
             spec = spec.withTdspec(tspec);
-            TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
-            TdResults result = kernel.process(s[i].getValues(), s[i].getAnnualFrequency(), false, null);
+            TdKernel kernel = TdKernel.of(spec);
+            TdResults result =
+                    kernel.process(s[i].getValues(), s[i].getAnnualFrequency(), false, null, ProcessingLog.dummy());
             if (result.isTimeVarying()) {
                 result.getData("final.regression.effect", double[].class);
             }
@@ -136,8 +138,9 @@ public class TdDecompositionKernelTest {
         long t0 = System.currentTimeMillis();
         for (int i = 0; i < s.length; ++i) {
             spec = spec.withTdspec(tspec);
-            TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
-            TdResults result = kernel.process(s[i].getValues(), s[i].getAnnualFrequency(), false, null);
+            TdKernel kernel = TdKernel.of(spec);
+            TdResults result =
+                    kernel.process(s[i].getValues(), s[i].getAnnualFrequency(), false, null, ProcessingLog.dummy());
             //
             // System.out.print(result.initialResults().getLikelihood().getLogLikelihood());
             //            System.out.print('\t');
@@ -181,9 +184,9 @@ public class TdDecompositionKernelTest {
                 .tdspec(tspec)
                 .build();
 
-        TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
+        TdKernel kernel = TdKernel.of(spec);
 
-        TdResults result = kernel.process(s.getValues(), s.getAnnualFrequency(), false, null);
+        TdResults result = kernel.process(s.getValues(), s.getAnnualFrequency(), false, null, ProcessingLog.dummy());
         Map<String, Class> dic = result.getDictionary();
         for (String e : dic.keySet()) {
             System.out.println(e);

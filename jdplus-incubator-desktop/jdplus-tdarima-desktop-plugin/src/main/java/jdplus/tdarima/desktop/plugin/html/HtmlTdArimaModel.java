@@ -17,14 +17,14 @@ package jdplus.tdarima.desktop.plugin.html;
 
 import java.io.IOException;
 import jdplus.advancedsa.base.core.tdarima.TdSarimaResults;
-import jdplus.toolkit.desktop.plugin.html.AbstractHtmlElement;
 import jdplus.toolkit.desktop.plugin.html.HtmlStream;
+import jdplus.toolkit.desktop.plugin.html.HtmlTag;
 
 /**
  *
  * @author Jean Palate
  */
-public class HtmlTdArimaModel extends AbstractHtmlElement {
+public class HtmlTdArimaModel extends HtmlTdArima {
 
     private final TdSarimaResults model;
     boolean summary;
@@ -36,7 +36,9 @@ public class HtmlTdArimaModel extends AbstractHtmlElement {
 
     @Override
     public void write(HtmlStream stream) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        stream.write(HtmlTag.HEADER1, "TD Arima model");
+        stream.write(HtmlTag.LINEBREAK);
+        writeTdArima(stream, model, false);
+        stream.write(HtmlTag.LINEBREAK);
     }
 }

@@ -22,7 +22,7 @@ import jdplus.advancedsa.base.api.tdarima.TdSarimaModelSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.advancedsa.base.core.tdarima.TdAirlineDecomposer;
 import jdplus.advancedsa.base.core.tdarima.TdArimaDecomposer;
-import jdplus.advancedsa.base.core.tdarima.TdDecompositionKernel;
+import jdplus.advancedsa.base.core.tdarima.TdKernel;
 import jdplus.advancedsa.base.core.tdarima.TdResults;
 import jdplus.advancedsa.base.core.tdarima.TdSsfUcarima;
 import jdplus.toolkit.base.api.arima.SarimaOrders;
@@ -31,6 +31,7 @@ import jdplus.toolkit.base.api.data.Parameter;
 import jdplus.toolkit.base.api.data.ParameterType;
 import jdplus.toolkit.base.api.information.GenericExplorable;
 import jdplus.toolkit.base.api.math.matrices.Matrix;
+import jdplus.toolkit.base.api.processing.ProcessingLog;
 import jdplus.toolkit.base.core.arima.ArimaModel;
 import jdplus.toolkit.base.core.data.DataBlock;
 import jdplus.toolkit.base.core.math.matrices.FastMatrix;
@@ -84,17 +85,22 @@ public class TimeVaryingArimaModels {
                 orders.setSeasonal(seasonal[0], seasonal[1], seasonal[2]);
             }
             // we suppose that the parameters are correctly ordered (phi, bphi, th, bth)
-            TdArimaDecomposer decomposer = new TdArimaDecomposer(period, data.length, i -> {
-                DoubleSeq c = parameters.column(i);
-                DoubleSeq p = tdvar ? c.drop(0, 1) : c;
-                SarimaModel sarima = SarimaModel.builder(orders).parameters(p).build();
-                if (!tdvar) {
-                    return sarima;
-                } else {
-                    ArimaModel arima = ArimaModel.of(sarima);
-                    return arima.scaleVariance(c.get(p.length()));
-                }
-            });
+            TdArimaDecomposer decomposer = new TdArimaDecomposer(
+                    period,
+                    data.length,
+                    i -> {
+                        DoubleSeq c = parameters.column(i);
+                        DoubleSeq p = tdvar ? c.drop(0, 1) : c;
+                        SarimaModel sarima =
+                                SarimaModel.builder(orders).parameters(p).build();
+                        if (!tdvar) {
+                            return sarima;
+                        } else {
+                            ArimaModel arima = ArimaModel.of(sarima);
+                            return arima.scaleVariance(c.get(p.length()));
+                        }
+                    },
+                    ProcessingLog.dummy());
             UcarimaModel[] ucarimaModels = decomposer.ucarimaModels();
             CompositeSsf ssf = TdSsfUcarima.of(data.length, i -> ucarimaModels[i]);
             int[] dim = ssf.componentsDimension();
@@ -167,8 +173,8 @@ public class TimeVaryingArimaModels {
                 .precision(eps)
                 .simplificationThreshold(simplificationThreshold)
                 .build();
-        TdDecompositionKernel kernel = TdDecompositionKernel.of(spec);
-        return kernel.process(DoubleSeq.of(data), period, mean, FastMatrix.of(X));
+        TdKernel kernel = TdKernel.of(spec);
+        return kernel.process(DoubleSeq.of(data), period, mean, FastMatrix.of(X), ProcessingLog.dummy());
     }
 
     //    public LtdSarimaResults estimate(double[] data, int period, Matrix X, int[] regular, int[] seasonal,

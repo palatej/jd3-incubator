@@ -15,12 +15,14 @@
  */
 package jdplus.advancedsa.base.core.tdarima;
 
+import java.util.function.IntFunction;
 import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.data.DoublesMath;
 import jdplus.toolkit.base.core.arima.ArimaModel;
+import jdplus.toolkit.base.core.arima.IArimaModel;
 import jdplus.toolkit.base.core.data.DataBlock;
 import jdplus.toolkit.base.core.sarima.SarimaModel;
 import jdplus.toolkit.base.core.ssf.univariate.Ssf;
@@ -47,12 +49,11 @@ public class TdSarimaModel {
         return new TdSarimaModel(period, spec, TdEstimationSpec.Transformation.LINEAR, p, p, 1, 1, n);
     }
 
-    public Ssf ssf() {
-
+    public IntFunction<IArimaModel> models() {
         DoubleSeq delta = DoublesMath.subtract(p1, p0);
         double r = 1.0 / (n - 1);
         if (fn == TdEstimationSpec.Transformation.LINEAR) {
-            return TdSsfArima.ssf(n, i -> {
+            return i -> {
                 DataBlock q = DataBlock.of(p0);
                 q.addAY(i * r, delta);
                 SarimaModel sarima = SarimaModel.builder(spec.asSarimaOrders(period))
@@ -61,9 +62,9 @@ public class TdSarimaModel {
                 double e0 = var0 == 1 ? 1 : Math.sqrt(var0), e1 = var1 == 1 ? 1 : Math.sqrt(var1);
                 double et = e0 + (i * r) * (e1 - e0);
                 return new ArimaModel(sarima.getStationaryAr(), sarima.getNonStationaryAr(), sarima.getMa(), et * et);
-            });
+            };
         } else {
-            return TdSsfArima.ssf(n, i -> {
+            return i -> {
                 double x = i * r, x2 = x * x, x3 = x * x2;
                 DataBlock q = DataBlock.of(p0);
                 q.addAY(3 * x2, delta);
@@ -74,8 +75,13 @@ public class TdSarimaModel {
                 double e0 = var0 == 1 ? 1 : Math.sqrt(var0), e1 = var1 == 1 ? 1 : Math.sqrt(var1);
                 double et = e0 + (i * r) * (e1 - e0);
                 return new ArimaModel(sarima.getStationaryAr(), sarima.getNonStationaryAr(), sarima.getMa(), et * et);
-            });
+            };
         }
+    }
+
+    public Ssf ssf() {
+
+        return TdSsfArima.ssf(n, models());
     }
 
     public boolean isTimeVarying() {

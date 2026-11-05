@@ -20,8 +20,10 @@ import java.util.function.Function;
 import jdplus.advancedsa.base.core.tdarima.TdArimaDocument;
 import jdplus.advancedsa.base.core.tdarima.TdModellingResults;
 import jdplus.advancedsa.base.core.tdarima.TdResults;
+import jdplus.advancedsa.base.core.tdarima.TdSarimaResults;
 import jdplus.sa.base.api.SaDictionaries;
 import jdplus.sa.desktop.plugin.ui.SaViews;
+import jdplus.tdarima.desktop.plugin.html.HtmlTdArimaModel;
 import jdplus.tdarima.desktop.plugin.html.HtmlTdArimaSelection;
 import jdplus.toolkit.base.api.dictionaries.Dictionary;
 import jdplus.toolkit.base.api.dictionaries.RegressionDictionaries;
@@ -32,6 +34,7 @@ import jdplus.toolkit.base.api.util.LinearId;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 import jdplus.toolkit.desktop.plugin.TsDynamicProvider;
 import jdplus.toolkit.desktop.plugin.html.HtmlElement;
+import jdplus.toolkit.desktop.plugin.html.HtmlHeader;
 import jdplus.toolkit.desktop.plugin.html.modelling.HtmlRegSarima;
 import jdplus.toolkit.desktop.plugin.modelling.ForecastsFactory;
 import jdplus.toolkit.desktop.plugin.modelling.InputFactory;
@@ -56,7 +59,9 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument> {
 
-    public static final String SELECTION = "TDARIMA estimation",
+    public static final String TDARIMA = "TD Arima",
+            SELECTION = "Selection",
+            ESTIMATION = "Final model",
             STOCHASTIC = "Stochastic series",
             COMPONENTS = "Components",
             STM = "STS components",
@@ -72,9 +77,9 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
     public static final Id DECOMPOSITION_WK_COMPONENTS = new LinearId(SaViews.DECOMPOSITION, WKANALYSIS, WK_COMPONENTS);
     public static final Id DECOMPOSITION_WK_FINALS = new LinearId(SaViews.DECOMPOSITION, WKANALYSIS, WK_FINALS);
     public static final Id DECOMPOSITION_TESTS = new LinearId(SaViews.DECOMPOSITION, MODELBASED);
-    public static final Id MODEL_SELECTION = new LinearId(SaViews.MODEL, SELECTION);
-    public static final Id MODEL_LIKELIHOOD = new LinearId(SaViews.MODEL, SaViews.LIKELIHOOD);
-    public static final Id MODEL_CMPS = new LinearId(SaViews.MODEL, STM);
+    public static final Id MODEL_SELECTION = new LinearId(TDARIMA, SELECTION);
+    public static final Id MODEL_ESTIMATION = new LinearId(TDARIMA, ESTIMATION);
+    public static final Id MODEL_LIKELIHOOD = new LinearId(TDARIMA, SaViews.LIKELIHOOD);
 
     private static final AtomicReference<IProcDocumentViewFactory<TdArimaDocument>> INSTANCE = new AtomicReference();
 
@@ -117,6 +122,11 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
     private static final Function<TdArimaDocument, TdResults> TDARIMAEXTRACTOR = source -> {
         TdModellingResults tr = source.getResult();
         return tr == null ? null : tr.getTdarima();
+    };
+    private static final Function<TdArimaDocument, TdSarimaResults> TDFINALARIMAEXTRACTOR = source -> {
+        TdModellingResults tr = source.getResult();
+        if (tr == null || tr.getTdarima() == null || !tr.getTdarima().isTimeVarying()) return null;
+        return tr.getTdarima().finalResults();
     };
     private static final Function<TdArimaDocument, TsData> RESEXTRACTOR =
             MODELEXTRACTOR.andThen(regarima -> regarima == null ? null : regarima.fullResiduals());
@@ -429,9 +439,9 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
     }
     // </editor-fold>
     @ServiceProvider(service = IProcDocumentItemFactory.class, position = 4000)
-    public static class StsSummaryFactory extends ProcDocumentItemFactory<TdArimaDocument, HtmlElement> {
+    public static class TdArimaSelectionFactory extends ProcDocumentItemFactory<TdArimaDocument, HtmlElement> {
 
-        public StsSummaryFactory() {
+        public TdArimaSelectionFactory() {
 
             super(
                     TdArimaDocument.class,
@@ -447,6 +457,25 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
         }
     }
 
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 4000)
+    public static class TdArimaModelFactory extends ProcDocumentItemFactory<TdArimaDocument, HtmlElement> {
+
+        public TdArimaModelFactory() {
+
+            super(
+                    TdArimaDocument.class,
+                    MODEL_ESTIMATION,
+                    TDFINALARIMAEXTRACTOR.andThen(tdarimaresults -> tdarimaresults == null
+                            ? new HtmlHeader(1, "No significant time dependent effects identified", false)
+                            : new HtmlTdArimaModel(tdarimaresults, false)),
+                    new HtmlItemUI());
+        }
+
+        @Override
+        public int getPosition() {
+            return 4010;
+        }
+    }
     //     @ServiceProvider(service = IProcDocumentItemFactory.class, position = 4400)
     //    public static class StsSeriesFactory extends ProcDocumentItemFactory<TdArimaDocument, TsDocument> {
     //
