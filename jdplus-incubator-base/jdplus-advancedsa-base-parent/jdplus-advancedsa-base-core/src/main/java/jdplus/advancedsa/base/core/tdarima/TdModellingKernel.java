@@ -101,7 +101,7 @@ public class TdModellingKernel {
             }
 
             TdKernel tdkernel = TdKernel.of(tdspec);
-            TdResults drslt = tdkernel.process(y, period, true, X, log);
+            TdResults drslt = tdkernel.process(y, period, false, X, log);
 
             TdDecompositionKernel dkernel = new TdDecompositionKernel();
             TdDecompositionResults frslt = dkernel.process(preprocessing, drslt.finalResults(), log);

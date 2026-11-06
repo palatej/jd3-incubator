@@ -34,7 +34,6 @@ import jdplus.toolkit.base.api.util.LinearId;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 import jdplus.toolkit.desktop.plugin.TsDynamicProvider;
 import jdplus.toolkit.desktop.plugin.html.HtmlElement;
-import jdplus.toolkit.desktop.plugin.html.HtmlHeader;
 import jdplus.toolkit.desktop.plugin.html.modelling.HtmlRegSarima;
 import jdplus.toolkit.desktop.plugin.modelling.ForecastsFactory;
 import jdplus.toolkit.desktop.plugin.modelling.InputFactory;
@@ -465,9 +464,7 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
             super(
                     TdArimaDocument.class,
                     MODEL_ESTIMATION,
-                    TDFINALARIMAEXTRACTOR.andThen(tdarimaresults -> tdarimaresults == null
-                            ? new HtmlHeader(1, "No significant time dependent effects identified", false)
-                            : new HtmlTdArimaModel(tdarimaresults, false)),
+                    source -> new HtmlTdArimaModel(source.getResult(), false),
                     new HtmlItemUI());
         }
 

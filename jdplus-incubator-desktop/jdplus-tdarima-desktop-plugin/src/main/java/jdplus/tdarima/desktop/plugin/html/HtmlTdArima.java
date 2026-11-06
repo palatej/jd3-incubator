@@ -210,5 +210,6 @@ public abstract class HtmlTdArima extends AbstractHtmlElement {
             }
             stream.close(HtmlTag.TABLEROW);
         }
+        stream.close(HtmlTag.TABLE);
     }
 }

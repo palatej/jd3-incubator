@@ -80,7 +80,6 @@ public class TdSarimaModel {
     }
 
     public Ssf ssf() {
-
         return TdSsfArima.ssf(n, models());
     }
 

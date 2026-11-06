@@ -17,7 +17,6 @@ package jdplus.advancedsa.base.core.tdarima;
 
 import java.util.List;
 import jdplus.toolkit.base.api.information.GenericExplorable;
-import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 
 /**
  * @author Jean Palate
@@ -25,8 +24,6 @@ import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 @lombok.Builder(builderClassName = "Builder")
 @lombok.Value
 public class TdResults implements GenericExplorable {
-
-    RegSarimaModel preprocessing;
 
     SarimaResults start;
 

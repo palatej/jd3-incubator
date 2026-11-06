@@ -23,7 +23,6 @@ import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
 import jdplus.toolkit.base.api.arima.SarimaOrders;
-import jdplus.toolkit.base.api.arima.SarmaOrders;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.data.DoublesMath;
 import jdplus.toolkit.base.api.dictionaries.ResidualsDictionaries;
@@ -169,7 +168,7 @@ public class TdKernel {
         }
         RegArimaModel<SarimaModel> model = initialModel.getModel();
         RegArmaModel<SarimaModel> dmodel = model.differencedModel();
-        SarmaOrders storders = model.arima().orders().doStationary();
+        SarimaOrders orders = model.arima().orders();
         int n = dmodel.getY().length();
 
         TdSarimaResults.Builder builder = TdSarimaResults.builder();
@@ -186,7 +185,7 @@ public class TdKernel {
         int dim = tdmapping.getDim();
 
         TdSarimaModel m0 =
-                TdSarimaModel.of(period, Orders.of(storders), dmodel.getArma().parameters(), n);
+                TdSarimaModel.of(period, Orders.of(orders), dmodel.getArma().parameters(), n);
         DoubleSeq p = tdmapping.parametersOf(m0);
         SsfFunctionPoint<TdSarimaModel, Ssf> pt = fn.evaluate(p);
         LevenbergMarquardtMinimizer min = LevenbergMarquardtMinimizer.builder()
@@ -194,12 +193,12 @@ public class TdKernel {
                 .build();
         min.minimize(pt);
         pt = (SsfFunctionPoint<TdSarimaModel, Ssf>) min.getResult();
+        TdSarimaModel m1 = pt.getCore().toBuilder().spec(Orders.of(orders)).build();
 
         DiffuseConcentratedLikelihood likelihood = pt.getLikelihood();
 
         DoubleSeq coefficients1 = likelihood.coefficients();
         FastMatrix covariance1 = likelihood.covariance(dim, true);
-
         if (model.getXCount() > 0) {
             DataBlock regs = DataBlock.make(model.getObservationsCount());
             regs.product(
@@ -223,7 +222,7 @@ public class TdKernel {
                 .ssq(likelihood.ssq())
                 .build();
         DoubleSeq e = likelihood.e();
-        TsResiduals res = residuals(e, storders.getPeriod(), ll, dim, ResidualsType.OneStepAHead);
+        TsResiduals res = residuals(e, orders.getPeriod(), ll, dim, ResidualsType.OneStepAHead);
         LogLikelihoodFunction<TdSarimaModel, DiffuseConcentratedLikelihood> fll =
                 concentratedLogLikelihoodFunction(dmodel, curSpec);
         //        LogLikelihoodFunction.Point max = new LogLikelihoodFunction.Point(fll,
@@ -258,7 +257,7 @@ public class TdKernel {
                 2 * (likelihood.logLikelihood() - initialModel.getLikelihood().getLogLikelihood()),
                 new Chi2(pdetails.n1),
                 TestType.Upper);
-        builder.model((TdSarimaModel) pt.getCore())
+        builder.model(m1)
                 .coefficients(coefficients1)
                 .covariance(covariance1)
                 .residuals(res)
