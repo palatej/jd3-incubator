@@ -220,7 +220,7 @@ public class TdArimaDictionaries {
             .dictionary(new PrefixedDictionary(STEP, TDARIMA))
             .build();
 
-    public static final String SACMPS = "sascmps", SASTOCH = "sastochastics";
+    public static final String SACMPS = "sascmps", SASTOCH = "sastochastics", INNOVATIONS = "evars";
 
     public final Dictionary TD_DECOMPOSITION = ComplexDictionary.builder()
             .dictionary(new PrefixedDictionary(SARIMA, SADECOMPOSITION))

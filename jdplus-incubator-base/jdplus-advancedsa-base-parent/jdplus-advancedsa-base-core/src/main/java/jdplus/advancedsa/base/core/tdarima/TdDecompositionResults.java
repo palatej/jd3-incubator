@@ -35,4 +35,8 @@ public class TdDecompositionResults implements GenericExplorable {
     List<UcarimaModel> models;
 
     private SeriesDecomposition tdStochasticSeries, tdComponents;
+
+    public boolean isTimeVarying() {
+        return !models.isEmpty();
+    }
 }

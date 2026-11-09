@@ -23,7 +23,9 @@ import jdplus.advancedsa.base.core.tdarima.TdDecompositionResults;
 import jdplus.advancedsa.base.core.tdarima.TdModellingResults;
 import jdplus.advancedsa.base.core.tdarima.TdResults;
 import jdplus.advancedsa.base.core.tdarima.TdSarimaResults;
+import jdplus.advancedsa.base.core.tdarima.extractors.TdDecompositionExtractor;
 import jdplus.sa.base.api.SaDictionaries;
+import jdplus.sa.desktop.plugin.processing.SIFactory;
 import jdplus.sa.desktop.plugin.ui.SaViews;
 import jdplus.tdarima.desktop.plugin.html.HtmlTdArimaModel;
 import jdplus.tdarima.desktop.plugin.html.HtmlTdArimaSelection;
@@ -67,14 +69,14 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
             ESTIMATION = "Final model",
             STOCHASTIC = "Stochastic series",
             COMPONENTS = "Components",
-            STM = "STS components",
             MODELBASED = "Model-based tests",
             WKANALYSIS = "WK analysis",
             WK_COMPONENTS = "Components",
             WK_FINALS = "Final estimators",
             WK_PRELIMINARY = "Preliminary estimators",
             WK_ERRORS = "Errors analysis",
-            SEAS_IRR = "Seas., irr.";
+            SEAS_IRR = "Seas., irr.",
+            STDERR = "Stde of the innovations";
     public static final Id DECOMPOSITION_SUMMARY = new LinearId(SaViews.DECOMPOSITION);
     public static final Id DECOMPOSITION_SARIMA_SERIES = new LinearId(SaViews.DECOMPOSITION, SARIMA, STOCHASTIC);
     public static final Id DECOMPOSITION_SARIMA_SERIES_LOW =
@@ -86,6 +88,7 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
             new LinearId(SaViews.DECOMPOSITION, SARIMA, COMPONENTS, SaViews.SA_TREND);
     public static final Id DECOMPOSITION_SARIMA_CMPSERIES_HIGH =
             new LinearId(SaViews.DECOMPOSITION, SARIMA, COMPONENTS, SEAS_IRR);
+    public static final Id DECOMPOSITION_SARIMA_SI = new LinearId(SaViews.DECOMPOSITION, SARIMA, SaViews.SI_RATIO);
     public static final Id DECOMPOSITION_TDARIMA_SERIES = new LinearId(SaViews.DECOMPOSITION, TDARIMA, STOCHASTIC);
     public static final Id DECOMPOSITION_TDARIMA_SERIES_LOW =
             new LinearId(SaViews.DECOMPOSITION, TDARIMA, STOCHASTIC, SaViews.SA_TREND);
@@ -96,6 +99,8 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
             new LinearId(SaViews.DECOMPOSITION, TDARIMA, COMPONENTS, SaViews.SA_TREND);
     public static final Id DECOMPOSITION_TDARIMA_CMPSERIES_HIGH =
             new LinearId(SaViews.DECOMPOSITION, TDARIMA, COMPONENTS, SEAS_IRR);
+    public static final Id DECOMPOSITION_TDARIMA_SI = new LinearId(SaViews.DECOMPOSITION, TDARIMA, SaViews.SI_RATIO);
+    public static final Id DECOMPOSITION_TDARIMA_VARS = new LinearId(SaViews.DECOMPOSITION, TDARIMA, STDERR);
     public static final Id DECOMPOSITION_WK_COMPONENTS = new LinearId(SaViews.DECOMPOSITION, WKANALYSIS, WK_COMPONENTS);
     public static final Id DECOMPOSITION_WK_FINALS = new LinearId(SaViews.DECOMPOSITION, WKANALYSIS, WK_FINALS);
     public static final Id DECOMPOSITION_TESTS = new LinearId(SaViews.DECOMPOSITION, MODELBASED);
@@ -664,6 +669,25 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
         }
     }
 
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 6200)
+    public static class DecompositionSarimaSiFactory extends SIFactory<TdArimaDocument> {
+
+        public DecompositionSarimaSiFactory() {
+            super(TdArimaDocument.class, DECOMPOSITION_SARIMA_SI, (TdArimaDocument source) -> {
+                TdModellingResults result = source.getResult();
+                if (result == null || !result.isValid()) {
+                    return null;
+                }
+                return result.getDecomposition().getStochasticSeries();
+            });
+        }
+
+        @Override
+        public int getPosition() {
+            return 6200;
+        }
+    }
+
     @ServiceProvider(service = IProcDocumentItemFactory.class, position = 7000)
     public static class DecompositionTdArimaSeries extends ProcDocumentItemFactory<TdArimaDocument, TdArimaDocument> {
 
@@ -767,6 +791,52 @@ public class TdArimaViewFactory extends ProcDocumentViewFactory<TdArimaDocument>
             return 7120;
         }
     }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 7200)
+    public static class DecompositionTdArimaSiFactory extends SIFactory<TdArimaDocument> {
+
+        public DecompositionTdArimaSiFactory() {
+            super(TdArimaDocument.class, DECOMPOSITION_TDARIMA_SI, (TdArimaDocument source) -> {
+                TdModellingResults result = source.getResult();
+                if (result == null || !result.isValid()) {
+                    return null;
+                }
+                return result.getDecomposition().getTdStochasticSeries();
+            });
+        }
+
+        @Override
+        public int getPosition() {
+            return 7200;
+        }
+    }
+
+    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 7300)
+    public static class DecompositionTdArimaVars extends ProcDocumentItemFactory<TdArimaDocument, TdArimaDocument> {
+
+        public DecompositionTdArimaVars() {
+            super(
+                    TdArimaDocument.class,
+                    DECOMPOSITION_TDARIMA_VARS,
+                    VALIDEXTRACTOR,
+                    new GenericChartUI(true, innovationVariances()));
+        }
+
+        @Override
+        public int getPosition() {
+            return 7300;
+        }
+    }
+
+    private static String[] innovationVariances() {
+        String prefix = Dictionary.concatenate(SaDictionaries.DECOMPOSITION, TdDecompositionExtractor.EVARS);
+        return new String[] {
+            generateId("Trend", Dictionary.concatenate(prefix, SaDictionaries.T)),
+            generateId("Seasonal", Dictionary.concatenate(prefix, SaDictionaries.S)),
+            generateId("Irregular", Dictionary.concatenate(prefix, SaDictionaries.I))
+        };
+    }
+
     //// <editor-fold defaultstate="collapsed" desc="REGISTER FORECASTS">
     ////    @ServiceProvider(service = IProcDocumentItemFactory.class, position = 200000 + 500)
     ////    public static class ForecastsTable extends ProcDocumentItemFactory<FractionalAirlineDocument,
