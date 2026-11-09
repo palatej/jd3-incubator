@@ -33,14 +33,14 @@ import nbbrd.service.ServiceProvider;
  */
 @Development(status = Development.Status.Release)
 @ServiceProvider(InformationExtractor.class)
-public class LtdSarimaResultsExtractor extends InformationMapping<TdSarimaResults> {
+public class TdSarimaResultsExtractor extends InformationMapping<TdSarimaResults> {
 
     @Override
     public Class<TdSarimaResults> getSourceClass() {
         return TdSarimaResults.class;
     }
 
-    public LtdSarimaResultsExtractor() {
+    public TdSarimaResultsExtractor() {
         set(modelItem(TdArimaDictionaries.PARAMETERS_NAMES), String[].class, s -> s.getParametersNames());
         set(
                 modelItem(TdArimaDictionaries.PARAMETERS_ALL),

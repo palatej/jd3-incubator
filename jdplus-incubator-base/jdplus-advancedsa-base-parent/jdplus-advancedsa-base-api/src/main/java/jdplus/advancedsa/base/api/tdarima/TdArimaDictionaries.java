@@ -15,6 +15,9 @@
  */
 package jdplus.advancedsa.base.api.tdarima;
 
+import static jdplus.sa.base.api.SaDictionaries.CMPDECOMPOSITION;
+import static jdplus.sa.base.api.SaDictionaries.SADECOMPOSITION;
+
 import jdplus.toolkit.base.api.dictionaries.AtomicDictionary;
 import jdplus.toolkit.base.api.dictionaries.ComplexDictionary;
 import jdplus.toolkit.base.api.dictionaries.Dictionary;
@@ -26,9 +29,10 @@ import jdplus.toolkit.base.api.stats.StatisticalTest;
 /**
  * @author Jean Palate
  */
+@lombok.experimental.UtilityClass
 public class TdArimaDictionaries {
 
-    public static final String PARAMETERS = "p",
+    public final String PARAMETERS = "p",
             PARAMETERS_ALL = "pall",
             PARAMETERS_MEAN = "pmean",
             PARAMETERS_DELTA = "pdelta",
@@ -45,15 +49,12 @@ public class TdArimaDictionaries {
             PARAMETERS_DERIVED_NAMES = "pderived_names",
             TEST_STATIONARITY = "test_stationarity",
             LRTEST = "lrtest";
-    public static final String REGS_COV = "cov", REGS_C = "c", REGS_EFFECT = "effect", Y_LIN = "y_lin";
-    public static final String MODEL = "model",
-            RESIDUALS = "residuals",
-            REGRESSION = "regression",
-            LIKELIHOOD = "likelihood";
-    public static final String SARIMA = "sarima", LTDSARIMA = "ltdsarima", INITIAL = "initial", FINAL = "final";
+    public final String REGS_COV = "cov", REGS_C = "c", REGS_EFFECT = "effect", Y_LIN = "y_lin";
+    public final String MODEL = "model", RESIDUALS = "residuals", REGRESSION = "regression", LIKELIHOOD = "likelihood";
+    public final String SARIMA = "sarima", TDSARIMA = "tdsarima", INITIAL = "initial", FINAL = "final";
 
-    public final Dictionary LTDARIMA_MODEL = AtomicDictionary.builder()
-            .name("ltdarima")
+    public final Dictionary TDARIMA_MODEL = AtomicDictionary.builder()
+            .name("tdarima")
             .item(AtomicDictionary.Item.builder()
                     .name(PARAMETERS_ALL)
                     .description("arima parameters")
@@ -126,8 +127,8 @@ public class TdArimaDictionaries {
                     .build())
             .build();
 
-    public final Dictionary LTDARIMA_REG = AtomicDictionary.builder()
-            .name("ltdarima_regresion")
+    public final Dictionary TDARIMA_REG = AtomicDictionary.builder()
+            .name("tdarima_regresion")
             .item(AtomicDictionary.Item.builder()
                     .name(REGS_C)
                     .description("regression coefficients of the model")
@@ -150,9 +151,9 @@ public class TdArimaDictionaries {
                     .build())
             .build();
 
-    public final Dictionary LTDARIMA = ComplexDictionary.builder()
-            .dictionary(new PrefixedDictionary(MODEL, LTDARIMA_MODEL))
-            .dictionary(new PrefixedDictionary(REGRESSION, LTDARIMA_REG))
+    public final Dictionary TDARIMA = ComplexDictionary.builder()
+            .dictionary(new PrefixedDictionary(MODEL, TDARIMA_MODEL))
+            .dictionary(new PrefixedDictionary(REGRESSION, TDARIMA_REG))
             .dictionary(new PrefixedDictionary(RESIDUALS, ResidualsDictionaries.RESIDUALS_DEFAULT))
             .build();
 
@@ -205,17 +206,26 @@ public class TdArimaDictionaries {
             .dictionary(new PrefixedDictionary(RESIDUALS, ResidualsDictionaries.RESIDUALS_DEFAULT))
             .build();
 
-    public final Dictionary LTD = ComplexDictionary.builder()
-            .dictionary(new PrefixedDictionary(SARIMA, ARIMA))
-            .dictionary(new PrefixedDictionary(INITIAL_STEP, LTDARIMA))
-            .dictionary(new PrefixedDictionary(FINAL_STEP, LTDARIMA))
-            .dictionary(new PrefixedDictionary(STEP, LTDARIMA))
-            .build();
-
-    public static final String NITERS = "niters",
+    public final String NITERS = "niters",
             ITER = "iter",
             INITIAL_STEP = "initial",
             FINAL_STEP = "final",
             STEP = "iter(*)",
             TIME_VARYING = "time_varying";
+
+    public final Dictionary TD = ComplexDictionary.builder()
+            .dictionary(new PrefixedDictionary(SARIMA, ARIMA))
+            .dictionary(new PrefixedDictionary(INITIAL_STEP, TDARIMA))
+            .dictionary(new PrefixedDictionary(FINAL_STEP, TDARIMA))
+            .dictionary(new PrefixedDictionary(STEP, TDARIMA))
+            .build();
+
+    public static final String SACMPS = "sascmps", SASTOCH = "sastochastics";
+
+    public final Dictionary TD_DECOMPOSITION = ComplexDictionary.builder()
+            .dictionary(new PrefixedDictionary(SARIMA, SADECOMPOSITION))
+            .dictionary(new PrefixedDictionary(TDSARIMA, SADECOMPOSITION))
+            .dictionary(new PrefixedDictionary(SARIMA, CMPDECOMPOSITION))
+            .dictionary(new PrefixedDictionary(TDSARIMA, CMPDECOMPOSITION))
+            .build();
 }

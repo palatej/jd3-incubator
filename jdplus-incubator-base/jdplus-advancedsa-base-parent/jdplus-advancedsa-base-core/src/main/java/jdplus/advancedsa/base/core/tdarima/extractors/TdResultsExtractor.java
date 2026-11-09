@@ -38,6 +38,12 @@ public class TdResultsExtractor extends InformationMapping<TdResults> {
 
     public TdResultsExtractor() {
         delegate(TdArimaDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
+        delegate(TdArimaDictionaries.FINAL_STEP, TdSarimaResults.class, source -> source.finalResults());
+        delegate(TdArimaDictionaries.INITIAL_STEP, TdSarimaResults.class, source -> source.results(0));
+        set(
+                TdArimaDictionaries.NITERS,
+                Integer.class,
+                source -> source.getTdResults().size());
         delegateArray(TdArimaDictionaries.ITER, 0, 10, TdSarimaResults.class, (source, i) -> {
             int last = source.getTdResults().size() - 1;
             if (i > last) {
@@ -45,13 +51,6 @@ public class TdResultsExtractor extends InformationMapping<TdResults> {
             }
             return source.getTdResults().get(i);
         });
-        delegate(TdArimaDictionaries.SARIMA, SarimaResults.class, source -> source.getStart());
-        delegate(TdArimaDictionaries.FINAL_STEP, TdSarimaResults.class, source -> source.finalResults());
-        delegate(TdArimaDictionaries.INITIAL_STEP, TdSarimaResults.class, source -> source.results(0));
-        set(
-                TdArimaDictionaries.NITERS,
-                Integer.class,
-                source -> source.getTdResults().size());
         set(TdArimaDictionaries.TIME_VARYING, Boolean.class, source -> source.isTimeVarying());
     }
 

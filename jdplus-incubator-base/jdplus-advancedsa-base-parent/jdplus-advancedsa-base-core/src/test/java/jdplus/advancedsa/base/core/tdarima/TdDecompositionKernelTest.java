@@ -19,6 +19,7 @@ import java.util.Map;
 import jdplus.advancedsa.base.api.tdarima.Orders;
 import jdplus.advancedsa.base.api.tdarima.TdEstimationSpec;
 import jdplus.advancedsa.base.api.tdarima.TdSarimaSpec;
+import jdplus.toolkit.base.api.information.InformationExtractors;
 import jdplus.toolkit.base.api.processing.ProcessingLog;
 import jdplus.toolkit.base.api.timeseries.TsData;
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,7 @@ public class TdDecompositionKernelTest {
 
     @Test
     public void test311011() {
+        InformationExtractors.reloadExtractors();
         TsData[] s = Data.retail_us();
         Orders airline = Orders.airline();
         Orders aspec = airline.toBuilder().p(3).build();

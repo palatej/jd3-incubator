@@ -60,6 +60,9 @@ public class TdModellingKernelTest {
             TdResults tdarima = result.getTdarima();
             if (tdarima.isTimeVarying()) {
                 SeriesDecomposition decomp = result.getDecomposition().getTdStochasticSeries();
+                TsData esa = result.getData("decomposition.tdsarima.sastochastics.sa_e", TsData.class);
+                TsData et = result.getData("decomposition.tdsarima.sastochastics.t_e", TsData.class);
+                TsData ei = result.getData("decomposition.tdsarima.sastochastics.i_e", TsData.class);
                 //                System.out.println(decomp.getSeries(ComponentType.Series, ComponentInformation.Value)
                 //                        .getValues());
                 //                System.out.println(decomp.getSeries(ComponentType.Trend, ComponentInformation.Value)

@@ -16,7 +16,10 @@ module jdplus.advancedsa.base.core {
     exports jdplus.advancedsa.base.core.tdarima.extractors;
 
     provides InformationExtractor with
+            jdplus.advancedsa.base.core.extractors.SeriesDecompositionExtractor,
             jdplus.advancedsa.base.core.tdarima.extractors.SarimaResultsExtractor,
-            jdplus.advancedsa.base.core.tdarima.extractors.LtdSarimaResultsExtractor,
-            jdplus.advancedsa.base.core.tdarima.extractors.TdResultsExtractor;
+            jdplus.advancedsa.base.core.tdarima.extractors.TdSarimaResultsExtractor,
+            jdplus.advancedsa.base.core.tdarima.extractors.TdModellingExtractor,
+            jdplus.advancedsa.base.core.tdarima.extractors.TdResultsExtractor,
+            jdplus.advancedsa.base.core.tdarima.extractors.TdDecompositionExtractor;
 }
