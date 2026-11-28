@@ -43,7 +43,7 @@ public class KfSquaredGainsUI implements ItemUI<KfSquaredGainsUI.Information> {
                     int component = information.getDescriptors()[j].getComponent();
                     boolean signal = information.getDescriptors()[j].isSignal();
                     FastMatrix matrix = information.getWeights().matrix(component);
-                    double[] w = matrix.column(item).toArray();
+                    double[] w = matrix.row(item).toArray();
                     if (!signal) {
                         for (int k = 0; k < w.length; ++k) {
                             w[k] = -w[k];

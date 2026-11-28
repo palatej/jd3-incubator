@@ -55,7 +55,9 @@ public class HtmlTdArimaSelection extends HtmlTdArima {
         writeArima(stream, start, true);
         stream.write(HtmlTag.LINEBREAK);
         for (TdSarimaResults cur : results.getTdResults()) {
-            stream.write(HtmlTag.HEADER1, "Model " + cur.getModel().spec().model())
+            stream.write(
+                            HtmlTag.HEADER1,
+                            "Stochastic model " + cur.getModel().spec().model())
                     .newLine();
             writeLikelihoodSummary(stream, cur.getLikelihood());
             HtmlTdArima.writeTdArima(stream, cur, true);

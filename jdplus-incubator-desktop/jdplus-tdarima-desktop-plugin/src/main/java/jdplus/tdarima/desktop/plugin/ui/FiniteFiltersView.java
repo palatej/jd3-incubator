@@ -17,6 +17,8 @@ import jdplus.toolkit.desktop.plugin.ui.DiscreteInformationProvider;
 
 public class FiniteFiltersView extends JComponent {
 
+    private static final int MARGIN = 5;
+
     private final JTabbedPane tabbedpanel_;
 
     public static class FilterProvider implements DiscreteInformationProvider {
@@ -80,7 +82,9 @@ public class FiniteFiltersView extends JComponent {
             double[] v = new double[domain.getLength()];
             IntToDoubleFunction ff = filter[cmp].weights();
             for (int i = 0; i < v.length; ++i) {
-                v[i] = ff.applyAsDouble(domain.x(i));
+                double x = domain.x(i);
+                if (x < n0 || x > n1) v[i] = 0;
+                else v[i] = ff.applyAsDouble(domain.x(i));
             }
             return v;
         }
@@ -95,7 +99,8 @@ public class FiniteFiltersView extends JComponent {
         tabbedpanel_ = new JTabbedPane();
 
         for (FilterProvider provider : providers) {
-            FilterView filterView = new FilterView(provider, provider.n, provider.n0, provider.n1, -0.3, 1);
+            FilterView filterView = new FilterView(
+                    provider, provider.n + 2 * MARGIN, provider.n0 - MARGIN, provider.n1 + MARGIN, -0.3, 1);
             tabbedpanel_.addTab(provider.getInformation(), filterView);
         }
         setLayout(new BorderLayout());

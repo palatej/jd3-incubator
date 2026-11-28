@@ -57,7 +57,6 @@ import jdplus.toolkit.desktop.plugin.html.HtmlStream;
 import jdplus.toolkit.desktop.plugin.html.HtmlTable;
 import jdplus.toolkit.desktop.plugin.html.HtmlTableCell;
 import jdplus.toolkit.desktop.plugin.html.HtmlTag;
-import jdplus.toolkit.desktop.plugin.html.modelling.HtmlLikelihood;
 
 /**
  *
@@ -124,7 +123,7 @@ public class HtmlTdArimaModel extends HtmlTdArima {
     //
     private void writeSummary(HtmlStream stream) throws IOException {
         TsDomain edom = preprocessing.getEstimation().getDomain();
-        stream.write(HtmlTag.HEADER1, "Summary").newLine();
+        stream.write(HtmlTag.HEADER2, "Summary").newLine();
         stream.write("Estimation span: [").write(edom.getStartPeriod().getStartAsShortString());
         stream.write(" - ")
                 .write(edom.getLastPeriod().getStartAsShortString())
@@ -222,24 +221,11 @@ public class HtmlTdArimaModel extends HtmlTdArima {
 
     public void writeDetails(HtmlStream stream, boolean outliers) throws IOException {
         // write likelihood
-        stream.write(HtmlTag.HEADER1, "Final model");
-        stream.newLine();
-        stream.write(HtmlTag.HEADER2, "Likelihood statistics");
-        stream.write(new HtmlLikelihood(model.getTdarima().finalResults().getLikelihood()));
-        writeScore(stream);
-        stream.write(HtmlTag.LINEBREAK);
-        stream.write(HtmlTag.HEADER2, "TD Arima model");
         HtmlTdArima.writeTdArima(stream, tdsarima, summary);
         stream.write(HtmlTag.LINEBREAK);
-        stream.write(HtmlTag.HEADER2, "Regression model");
+        stream.write(HtmlTag.HEADER2, "Regression model").newLine();
         writeRegression(stream, outliers);
         stream.write(HtmlTag.LINEBREAK);
-    }
-
-    private String pheader(String name, int pos) {
-        StringBuilder header = new StringBuilder();
-        header.append(name).append('(').append(pos + 1).append(')');
-        return header.toString();
     }
 
     //    public void writeArima(HtmlStream stream) throws IOException {
@@ -768,15 +754,5 @@ public class HtmlTdArimaModel extends HtmlTdArima {
         }
         stream.close(HtmlTag.TABLE);
         stream.newLines(2);
-    }
-
-    private void writeScore(HtmlStream stream) throws IOException {
-        DoubleSeq score = preprocessing.getEstimation().getParameters().getScores();
-        if (score.isEmpty()) {
-            return;
-        }
-        stream.newLine();
-        stream.write(HtmlTag.HEADER3, "Scores at the solution");
-        stream.write(DoubleSeq.format(score, df6));
     }
 }

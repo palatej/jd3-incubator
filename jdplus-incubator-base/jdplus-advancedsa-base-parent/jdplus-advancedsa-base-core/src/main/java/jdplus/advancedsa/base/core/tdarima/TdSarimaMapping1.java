@@ -504,7 +504,6 @@ public class TdSarimaMapping1 implements TdSarimaMapping {
         double[] p = new double[np + nd + nv];
         DoubleSeq p0 = model.getP0();
         DoubleSeq p1 = model.getP1();
-        int n = model.getN() - 1;
         for (int i = 0; i < np; ++i) {
             p[i] = (p0.get(i) + p1.get(i)) / 2;
         }

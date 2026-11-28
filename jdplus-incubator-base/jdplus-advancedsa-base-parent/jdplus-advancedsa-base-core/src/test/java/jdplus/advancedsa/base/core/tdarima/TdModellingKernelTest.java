@@ -40,7 +40,7 @@ public class TdModellingKernelTest {
         TdSarimaSpec tspec = TdSarimaSpec.builder()
                 .vTheta(true)
                 .vBtheta(true)
-                //                .vVar(true)
+                .vVar(true)
                 .orders(Orders.airline())
                 .build();
 

@@ -180,8 +180,13 @@ public abstract class HtmlTdArima extends AbstractHtmlElement {
     public static void writeTdArima(HtmlStream stream, TdSarimaResults tdarima, boolean summary) throws IOException {
         LikelihoodStatistics ll = tdarima.getLikelihood();
         if (!summary) {
-            stream.write(HtmlTag.HEADER2, "Likelihood statistics");
+            stream.write(HtmlTag.HEADER2, "Likelihood statistics").newLine();
             stream.write(new HtmlLikelihood(ll));
+            stream.write(HtmlTag.LINEBREAK);
+            stream.write(
+                            HtmlTag.HEADER2,
+                            "Stochastic model " + tdarima.getModel().spec().model())
+                    .newLine();
         }
         int nobs = ll.getEffectiveObservationsCount(), nparams = ll.getEstimatedParametersCount();
         DoubleSeqCursor p = tdarima.getParameters().cursor();
@@ -214,5 +219,37 @@ public abstract class HtmlTdArima extends AbstractHtmlElement {
             stream.close(HtmlTag.TABLEROW);
         }
         stream.close(HtmlTag.TABLE);
+
+        if (!summary) {
+            stream.newLine();
+            DoubleSeqCursor p_derived = tdarima.getDerivedParameters().cursor();
+            Matrix pcov_derived = tdarima.getDerivedParametersCovariance();
+            DoubleSeqCursor pdiag_derived = pcov_derived.diagonal().cursor();
+            String[] pnames_derived = tdarima.getDerivedParametersNames();
+            stream.open(new HtmlTable().withWidth(400));
+            stream.open(HtmlTag.TABLEROW);
+            stream.write(new HtmlTableCell("").withWidth(100));
+            stream.write(
+                    new HtmlTableCell("Derived coefficients").withWidth(100).withClass(Bootstrap4.FONT_WEIGHT_BOLD));
+            stream.write(new HtmlTableCell("T-Stat").withWidth(100).withClass(Bootstrap4.FONT_WEIGHT_BOLD));
+            stream.write(new HtmlTableCell("P[|T| &gt t]").withWidth(100).withClass(Bootstrap4.FONT_WEIGHT_BOLD));
+            stream.close(HtmlTag.TABLEROW); //        int P = sspec.getP();
+
+            for (int i = 0; i < pnames_derived.length; ++i) {
+                stream.open(HtmlTag.TABLEROW);
+                stream.write(new HtmlTableCell(pnames_derived[i]).withWidth(100));
+                double val = p_derived.getAndNext();
+                stream.write(new HtmlTableCell(df4.format(val)).withWidth(100));
+                double stde = Math.sqrt(pdiag_derived.getAndNext());
+                if (stde != 0) {
+                    double tval = val / stde;
+                    stream.write(new HtmlTableCell(formatT(tval)).withWidth(100));
+                    double prob = 1 - t.getProbabilityForInterval(-tval, tval);
+                    stream.write(new HtmlTableCell(df4.format(prob)).withWidth(100));
+                }
+                stream.close(HtmlTag.TABLEROW);
+            }
+            stream.close(HtmlTag.TABLE);
+        }
     }
 }

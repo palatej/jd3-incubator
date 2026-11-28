@@ -66,8 +66,8 @@ public interface TdSarimaMapping extends IParametricMapping<TdSarimaModel> {
                 }
             }
             // derived
-            int nd = details.derivedpnames.length;
             int ndc = details.nv;
+            int nd = details.n1 + ndc;
             dval = new double[nd];
             dcov = FastMatrix.square(nd);
             double m1 = m - 1;
@@ -122,15 +122,16 @@ public interface TdSarimaMapping extends IParametricMapping<TdSarimaModel> {
                     dcov.row(i).div(m1);
                 }
             }
-            if (nd % 2 == 1) {
-                dval[nd - 1] += 1;
-            }
         }
     }
 
     @lombok.ToString
     static class ParametersDetails {
 
+        // np = nbr. parameters, n0 = nbr. arima parameters, n1 = number td parameters
+        // pnames for each parameters, derivedpnames for each derived arima parameters (not for var !)
+        // preorder, torescale for each parameters
+        //
         final int n0, n1, np, nv;
         final String[] pnames, derivedpnames;
         final int[] preorder;
@@ -146,8 +147,7 @@ public interface TdSarimaMapping extends IParametricMapping<TdSarimaModel> {
             n1 = np - n0;
             pnames = new String[np];
             nv = (spec.isVVar() ? n1 - 1 : n1);
-            int nd = n1 + nv;
-            derivedpnames = new String[nd];
+            derivedpnames = new String[2 * nv]; // not for var
             iderived = new int[nv];
             preorder = new int[np];
             torescale = new boolean[np];
@@ -226,14 +226,7 @@ public interface TdSarimaMapping extends IParametricMapping<TdSarimaModel> {
         private void fillVar(TdEstimationSpec.Parametrization pspec, boolean vVar) {
             if (vVar) {
                 preorder[np - 1] = np - 1;
-                if (pspec == TdEstimationSpec.Parametrization.MEAN_DELTA) {
-                    pnames[np - 1] = "stde-delta";
-                    derivedpnames[n1 + nv - 1] = "stde-end[derived]";
-                    torescale[i] = true;
-                } else {
-                    pnames[np - 1] = "stde-end";
-                    derivedpnames[n1 + nv - 1] = "stde-delta[derived]";
-                }
+                pnames[np - 1] = "stde-delta";
             }
         }
 
